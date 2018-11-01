@@ -4,7 +4,10 @@
 /node_modules
 
 # testing
-/coverage
+/testdata
+
+# generated zips
+/files
 
 # production
 /build
