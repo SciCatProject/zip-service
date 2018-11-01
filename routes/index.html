@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+        <title>zip-service</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script>
+            $( document ).ready(function() {
+                const jsonData =   "{\"base\":\"/home/jrosenqvist/code/zip-service/testdata\",\"files\":[\"file1.h5\",\"file2.h5\",\"file10.h5\"]}";
+                $("#textArea").val(jsonData);
+                console.log("body:" + $("#textArea").val());
+                $("#button").click(function(){
+                    request = $.ajax ({
+                        url: "zip",
+                        type: "POST",
+                        data: $( "#textArea" ).val(),
+                        contentType: "application/json; charset=UTF-8",
+                        contentDisposition: 'attachment; filename=downltestoad',
+                        
+                    });
+                    request.done(function (response, textStatus, jqXHR){
+                        window.location = response;
+                    });
+                    request.fail(function (jqXHR, textStatus, errorThrown){
+                        console.log( "The following error occurred: " + textStatus, errorThrown);
+                    });
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <div>
+            <textarea rows="10" cols="80" placeholder="json data" id="textArea"></textarea>
+        </div>
+        <div>
+            <input type="button" value="POST" id="button"/>
+        </div>
+    </body>
+</html>

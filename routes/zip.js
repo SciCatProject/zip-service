@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-/* GET files listing. */
+/* GET zip  */
 router.get('/', function(req, res, next) {
 	res.send('files');
 });
@@ -10,21 +10,16 @@ router.post('/', function(req, res, next){
 		const json = req.body;
 		const path = json["base"];
 		const files = json["files"];
-
 		const zipFile = zipFiles(path, files);
-		//console.log(req.protocol + '://' + req.get('host') + req.originalUrl);
 		res.send(zipFile);
 	}catch(error){
 		res.send("failed to parse json data")
 	}
 });
-
 module.exports = router;
 
-//curl -i -X POST http://localhost:3000/files -H "Content-Type: application/json" --data "@testdata.json"
-
 const zipFiles = (path, files) => {
-	const zipFile = require('crypto').createHash('md5').update(path).digest("hex") + "_" + new Date().getTime();
+	const zipFile = require('crypto').createHash('md5').update(path).digest("hex") + "_" + new Date().getTime() + ".zip";
 	const fs = require('fs');
 	const archiver = require('archiver');
 	const output = fs.createWriteStream("files/" + zipFile);
@@ -44,5 +39,5 @@ const zipFiles = (path, files) => {
 	archive.pipe(output);
 	files.map(file => archive.file(path + "/" + file, { name: file }));
 	archive.finalize();
-	return zipFile;
+	return "/download?file=" + zipFile;
 }
