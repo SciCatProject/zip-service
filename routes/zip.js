@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
 
 router.get('/', function(req, res, next) {
 	next(new Error('Only accepts POST'));
@@ -7,21 +8,37 @@ router.get('/', function(req, res, next) {
 
 /* POST zip */
 router.post('/', function(req, res, next){
+	const json = req.body;
+	const path = json["base"];
+	if (!path || path.length === 0){
+		res.statusCode = 400;
+		res.send("JSON missing 'base'");
+		return;
+	}
+	const files = json["files"];
+	console.log("PATH: " + files);
+	if (!files || files.length === 0){
+		res.statusCode = 400;
+		res.send("JSON missing 'files'");
+		return;
+	}
+	if (!fs.existsSync(path)) {
+		res.statusCode = 400;
+		res.send("Directory '" + path + "' does not exist");
+		return;
+	}
 	try{
-		const json = req.body;
-		const path = json["base"];
-		const files = json["files"];
-		const zipFile = zipFiles(path, files);
-		res.send(zipFile);
+		const zipFile = zipFiles(path, files, res);
 	}catch(error){
-		res.send("failed to parse json data")
+		res.statusCode = 500;
+		res.send("The files could not be zipped");
+		return;
 	}
 });
 module.exports = router;
 
-const zipFiles = (path, files) => {
+const zipFiles = (path, files, res) => {
 	const zipFile = require('crypto').createHash('md5').update(path).digest("hex") + "_" + new Date().getTime() + ".zip";
-	const fs = require('fs');
 	const archiver = require('archiver');
 	const fileStream = fs.createWriteStream("files/" + zipFile);
 	const archive = archiver('zip', {
@@ -30,15 +47,16 @@ const zipFiles = (path, files) => {
 	});
 
 	archive.on('error', function(err) {
-	throw err;
+		throw err;
 	});
 	fileStream.on('close', function() {
 		console.log(archive.pointer() + ' total bytes');
 		console.log('archiver has been finalized and the output file descriptor has closed.');
+		res.send("/download?file=" + zipFile);
 	});
 	// pipe archive data to the output file
 	archive.pipe(fileStream);
 	files.map(file => archive.file(path + "/" + file, { name: file }));
 	archive.finalize();
-	return "/download?file=" + zipFile;
+
 }

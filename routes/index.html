@@ -4,7 +4,7 @@
     <head>
         <style>
             body{
-                width: 500px; 
+                width: 700px; 
                 margin: auto; 
                 font-family: Arial, Helvetica, sans-serif;
             }
@@ -20,7 +20,6 @@
             }
             input[type="button"]:hover{
                 background: #f0f0f0;
-
             }
         </style>
         <meta charset="utf-8">
@@ -41,18 +40,23 @@
                         
                     });
                     request.done(function (response, textStatus, jqXHR){
-                        //window.location = response;
-                        $("#dlLink").html("Download target: " + response);
-                        var file_path = response;
+                        $("#result").html("Download target: " + response);
+
+                        /* OPTION ONE */
+                        window.location = response;
+
+                        /*OPTION TWO */
+                        /*var file_path = response;
                         var a = document.createElement('A');
                         a.href = file_path;
                         a.download = file_path.substr(file_path.lastIndexOf('/') + 1);
                         document.body.appendChild(a);
                         a.click();
-                        document.body.removeChild(a);
+                        document.body.removeChild(a); */
                     });
                     request.fail(function (jqXHR, textStatus, errorThrown){
-                        console.log( "The following error occurred: " + textStatus, errorThrown);
+                        console.dir(jqXHR);
+                        $("#result").html(errorThrown + "<br/>" + jqXHR.responseText);
                     });
                 });
             });
@@ -64,7 +68,7 @@
             <div>files : List of file names in the base directory to be zipped</div>
             <div style='margin-top: 10px;'><textarea rows="10" style='width: 100%; box-sizing: border-box;' placeholder="JSON data" id="textArea"></textarea> </div>
             <div><input type="button" value="POST" id="button"/></div>
-            <div id="dlLink"></div>
+            <div id="result"></div>
         </div>
     </body>
 </html>
