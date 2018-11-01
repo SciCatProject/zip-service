@@ -3,14 +3,15 @@ const router = express.Router();
 
 /* GET download  */
 router.get('/', function(req, res, next) {
-  const fs = require('fs');
+    if (!req.query.file){
+      throw new Error("400: Missing parameter 'file'");
+      
+    }
   try{
-    var file = fs.readFileSync("files/" + req.query.file, "binary");
+    var file = require('fs').readFileSync("files/" + req.query.file, "binary");
   }catch(error){
-    throw new Error("404 - File not found");
+    throw new Error("404: File not found");
   }
-	
-
   res.setHeader('Content-Length', file.length);
   res.setHeader('content-disposition', 'attachment; filename=' + req.query.file);
   res.write(file, 'binary');

@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
-/* GET zip  */
 router.get('/', function(req, res, next) {
-	res.send('files');
+	next(new Error('Only accepts POST'));
 });
+
+/* POST zip */
 router.post('/', function(req, res, next){
 	try{
 		const json = req.body;
@@ -22,7 +23,7 @@ const zipFiles = (path, files) => {
 	const zipFile = require('crypto').createHash('md5').update(path).digest("hex") + "_" + new Date().getTime() + ".zip";
 	const fs = require('fs');
 	const archiver = require('archiver');
-	const output = fs.createWriteStream("files/" + zipFile);
+	const fileStream = fs.createWriteStream("files/" + zipFile);
 	const archive = archiver('zip', {
 	gzip: true,
 	zlib: { level: 9 } // Sets the compression level.
@@ -31,12 +32,12 @@ const zipFiles = (path, files) => {
 	archive.on('error', function(err) {
 	throw err;
 	});
-	output.on('close', function() {
+	fileStream.on('close', function() {
 		console.log(archive.pointer() + ' total bytes');
 		console.log('archiver has been finalized and the output file descriptor has closed.');
 	});
 	// pipe archive data to the output file
-	archive.pipe(output);
+	archive.pipe(fileStream);
 	files.map(file => archive.file(path + "/" + file, { name: file }));
 	archive.finalize();
 	return "/download?file=" + zipFile;

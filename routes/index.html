@@ -37,10 +37,19 @@
                         type: "POST",
                         data: $( "#textArea" ).val(),
                         contentType: "application/json; charset=UTF-8",
+                        contentDisposition: 'attachment',
                         
                     });
                     request.done(function (response, textStatus, jqXHR){
-                        window.location = response;
+                        //window.location = response;
+                        $("#dlLink").html("Download target: " + response);
+                        var file_path = response;
+                        var a = document.createElement('A');
+                        a.href = file_path;
+                        a.download = file_path.substr(file_path.lastIndexOf('/') + 1);
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
                     });
                     request.fail(function (jqXHR, textStatus, errorThrown){
                         console.log( "The following error occurred: " + textStatus, errorThrown);
@@ -55,6 +64,7 @@
             <div>files : List of file names in the base directory to be zipped</div>
             <div style='margin-top: 10px;'><textarea rows="10" style='width: 100%; box-sizing: border-box;' placeholder="JSON data" id="textArea"></textarea> </div>
             <div><input type="button" value="POST" id="button"/></div>
+            <div id="dlLink"></div>
         </div>
     </body>
 </html>
