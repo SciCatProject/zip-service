@@ -50,11 +50,8 @@ const zipFiles = (path, files, res) => {
 		throw err;
 	});
 	fileStream.on('close', function() {
-		console.log(archive.pointer() + ' total bytes');
-		console.log('archiver has been finalized and the output file descriptor has closed.');
 		res.send("/download?file=" + zipFile);
 	});
-	// pipe archive data to the output file
 	archive.pipe(fileStream);
 	files.map(file => archive.file(path + "/" + file, { name: file }));
 	archive.finalize();
