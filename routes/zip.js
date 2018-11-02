@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
-
+import ZIP_FILES_PATH from '../constants';
 router.get('/', function(req, res, next) {
 	next(new Error('Only accepts POST'));
 });
@@ -40,7 +40,7 @@ module.exports = router;
 const zipFiles = (path, files, res) => {
 	const zipFile = require('crypto').createHash('md5').update(path).digest("hex") + "_" + new Date().getTime() + ".zip";
 	const archiver = require('archiver');
-	const fileStream = fs.createWriteStream("files/" + zipFile);
+	const fileStream = fs.createWriteStream(ZIP_FILES_PATH + zipFile);
 	const archive = archiver('zip', {
 	gzip: true,
 	zlib: { level: 9 } // Sets the compression level.
