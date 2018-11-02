@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
-import ZIP_FILES_PATH from '../constants';
+const ZIP_FILES_PATH = require('../constants');
 router.get('/', function(req, res, next) {
 	next(new Error('Only accepts POST'));
 });
