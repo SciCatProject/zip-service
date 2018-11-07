@@ -58,7 +58,7 @@ const zipFiles = (path, files, res) => {
 		res.send("/download?file=" + zipFile);
 	});
 	archive.pipe(fileStream);
-	files.map(file => archive.file(path + "/" + file, { name: file }));
+	files.map(file => fs.existsSync(path + "/" + file) ? archive.file(path + "/" + file, { name: file }) : null);
 	archive.finalize();
 
 }
