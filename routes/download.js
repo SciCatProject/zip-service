@@ -4,6 +4,7 @@ const ZIP_FILES_PATH = require('../constants');
 
 /* GET download  */
 router.get('/', function(req, res, next) {
+  console.log("GET /download");
     if (!req.query.file){
       res.statusCode = 400;
 		  res.send("Missing parameter 'file'");
