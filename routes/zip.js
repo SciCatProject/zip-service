@@ -3,12 +3,17 @@ const router = express.Router();
 const fs = require('fs');
 const ZIP_FILES_PATH = require('../constants');
 router.get('/', function(req, res, next) {
-	next(new Error('Only accepts POST'));
+	console.log("GET /zip");
+	res.statusCode = 400;
+	res.send("Only accepts POST");
+	return;
 });
 
 /* POST zip */
 router.post('/', function(req, res, next){
 	const json = req.body;
+	console.log("POST /zip");
+	console.log(json);
 	const path = json["base"];
 	if (!path || path.length === 0){
 		res.statusCode = 400;
