@@ -6,3 +6,6 @@ services:
     build: .
     ports:
       - "3011:3011"
+    volume:
+      - /nfs/offline0/staff:/staff
+      - /nfs/offline0/visitors:/visitors
