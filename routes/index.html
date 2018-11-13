@@ -30,35 +30,6 @@
             $( document ).ready(function() {
                 const jsonData =   "{\r\n  \"base\": \"/home/jrosenqvist/code/zip-service/testdata\",\r\n  \"files\": [\"file1.h5\",\"file2.h5\",\"file10.h5\"]\r\n}";
                 $("#textArea").val(jsonData);
-                $("#button").click(function(){
-                    request = $.ajax ({
-                        url: "zip",
-                        type: "POST",
-                        data: $( "#textArea" ).val(),
-                        contentType: "application/json; charset=UTF-8",
-                        contentDisposition: 'attachment',
-                        
-                    });
-                    request.done(function (response, textStatus, jqXHR){
-                        $("#result").html("Download target: " + response);
-
-                        /* OPTION ONE */
-                        window.location = response;
-
-                        /*OPTION TWO */
-                        /*var file_path = response;
-                        var a = document.createElement('A');
-                        a.href = file_path;
-                        a.download = file_path.substr(file_path.lastIndexOf('/') + 1);
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a); */
-                    });
-                    request.fail(function (jqXHR, textStatus, errorThrown){
-                        console.dir(jqXHR);
-                        $("#result").html(errorThrown + "<br/>" + jqXHR.responseText);
-                    });
-                });
             });
         </script>
     </head>
@@ -66,9 +37,10 @@
         <div style='margin-top: 100px'>
             <div>base : Absolute path to the directory in which the files are stored</div>
             <div>files : List of file names in the base directory to be zipped</div>
-            <div style='margin-top: 10px;'><textarea rows="10" style='width: 100%; box-sizing: border-box;' placeholder="JSON data" id="textArea"></textarea> </div>
-            <div><input type="button" value="POST" id="button"/></div>
-            <div id="result"></div>
+            <form action="zip" method="post">
+                <textarea name="data"  rows="10" style='width: 100%; box-sizing: border-box;' placeholder="JSON data" id="textArea"></textarea>
+                <input type="submit" value="Submit"/>
+            </form>
         </div>
     </body>
 </html>

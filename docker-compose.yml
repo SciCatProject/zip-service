@@ -3,6 +3,7 @@ services:
   app:
     container_name: app
     restart: always
+    user: "2175:1300"
     build: .
     ports:
       - "3011:3011"

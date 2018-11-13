@@ -1,0 +1,12 @@
+body{
+    margin: 0;
+    padding: 0;
+}
+.error{
+    color: #630005;
+    background-color: #FFD2D2;
+    margin: auto;
+    text-align: center;
+    font-family: Verdana, sans-serif;
+    padding: 5px 0px 34px 0px;
+}

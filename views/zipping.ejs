@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="css/zipping.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+      $( document ).ready(function() {
+               iId = setInterval(poll, 100);
+            });
+            function poll(){
+              $.get( "/zip/polling" ).done(function( data ){
+                if (data && data.startsWith("/download")){
+                  clearInterval(iId);
+                }
+                $( "#status").html("<a target='_blank' href='" + data + "'>Download</a>");
+              });
+            }
+    </script>
+</head>
+<body>
+  <div class="zipping">
+   <div>Please wait, the files are being zipped</div>
+    <div><img src="images/rolling.gif"></div>
+    <div id="status"></div>
+  </div>
+</body>
+</html>
