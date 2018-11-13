@@ -35,13 +35,11 @@ router.post('/', function(req, res, next){
 		return;
 	}
 	try{
-		var sessData = req.session;
-		sessData.total = files.length;
-		sessData.current = 0;
-		sessData.zipFile = '';
-		var id = sessData.id;
-		client.set(id, "");
-		zipFiles(path, files, req, res, id);
+		const id = req.session.id;
+		res.render("zipping", {total: ("" + files.length)});
+		
+		setRedisEntry(id, 0, files.length, "");
+		zipFiles(path, files, id);
 	}catch(error){
 		res.statusCode = 500;
 		res.send("The files could not be zipped");
@@ -51,42 +49,72 @@ router.post('/', function(req, res, next){
 });
 module.exports = router;
 
-const zipFiles = (path, files, req, res, id) => {
+const zipFiles = (path, files, id) => {
 	const zipFile = require('crypto').createHash('md5').update(path).digest("hex") + "_" + new Date().getTime() + ".zip";
 	const archiver = require('archiver');
 	const fileStream = fs.createWriteStream(ZIP_FILES_PATH + zipFile);
 	const archive = archiver('zip', {
 	gzip: true,
-	zlib: { level: 9 } // Sets the compression level.
+	zlib: { level: 9 }
 	});
 
 	archive.on('error', function(err) {
 		throw err;
 	});
 	fileStream.on('close', function() {
-		client.set(id, "/download?file=" + zipFile);
-		req.session.zipFile= "/download?file=" + zipFile;
+		//getRedisEntry(id, (entry) => setRedisEntry(id, entry.current, entry.total, "/download?file=" + zipFile));
+		setFileName(id, "/download?file=" + zipFile);
 	});
 	archive.pipe(fileStream);
-	files.map(file => zipSingleFile(path, file, req, archive));
-	archive.finalize();
-	res.render("zipping");
+	files.map(file => zipSingleFile(path, file, id, archive));
+	setTimeout(function() {
+		archive.finalize();
+	}, 5000);
 
 }
-const zipSingleFile = (path, file, req, archive)  => {
-	
+const zipSingleFile = (path, file, id, archive)  => {
+	setTimeout(function() {
 		fs.existsSync(path + "/" + file) ? archive.file(path + "/" + file, { name: file }) : null;
-		req.session.current = req.session.current + 1;
-	 
-	
+		incrementCurrent(id);
+		//getRedisEntry(id, (entry) => setRedisEntry(id, entry.current + 1, entry.total, entry.filename));
+	}, 100);
 }
+
 router.get("/polling", function(req, res, next){
-	client.get(req.session.id, function(error, result) {
-		if (error) throw error;
-		if (result && result !== ""){
-			res.send(result);
+	getRedisEntry(req.session.id, (entry) => {
+		if (!entry) return;
+		if (entry.filename && entry.filename !== ""){
+			res.send(entry.filename);
 		}else{
-			res.send(req.session.current + "");
+			res.send(entry.current + "");
 		}
-	  });
+	});
+	
 });
+const setRedisEntry = (id, current, total, filename) => {
+	const entry = new Object();
+	entry.current = current;
+	entry.total = total;
+	entry.filename = filename;
+	client.set(id, JSON.stringify(entry));
+}
+const getRedisEntry = (id, callback) => {
+	client.get(id, function(error, result) {
+		if (error) throw error;
+		const res = JSON.parse(result);
+		//console.log("current from db: " + res.current);
+		callback(res);
+	  });
+}
+const incrementCurrent = (id) =>{
+
+	getRedisEntry(id, (entry) => {
+		console.log("ID: " + id);
+		const newCurrent = entry.current + 1;
+		console.log("incrementing to " + newCurrent);
+		setRedisEntry(id, newCurrent, entry.total, entry.filename);
+	});
+}
+const setFileName = (id, filename) => {
+	getRedisEntry(id, (entry) => setRedisEntry(id, entry.current, entry.total, filename))
+}
