@@ -2,9 +2,13 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const ZIP_FILES_PATH = require('../constants');
-var redis = require('redis');
-var client = redis.createClient();
-var data = new Object();
+//Don't need a real DB yet, maybe never. Ditching redis for a global object
+//var redis = require('redis');
+//var client = redis.createClient();
+db = new Object();
+const ENTRY_CURRENT = "CURRENT";
+const ENTRY_NBR_OF_FILES = "TOTAL";
+const ENTRY_FILENAME = "FILENAME";
 
 router.get('/', function(req, res, next) {
 	console.log("GET /zip");
@@ -37,9 +41,7 @@ router.post('/', function(req, res, next){
 	}
 	try{
 		const id = req.session.id;
-		setRedisEntry(id, files.length, "");
-		resetCurrent(id);
-		data[id] = 0;
+		initEntry(id, files.length);
 		res.render("zipping", {total: ("" + files.length)});
 		zipFiles(path, files, id);
 	}catch(error){
@@ -68,8 +70,6 @@ const zipFiles = (path, files, id) => {
 	});
 	archive.on('entry', function(){
 		incrementCurrent(id);
-		data[id]++;
-		console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAA  " + data[id]);
 	});
 	archive.pipe(fileStream);
 	files.map(file => zipSingleFile(path, file, id, archive));
@@ -77,50 +77,39 @@ const zipFiles = (path, files, id) => {
 
 }
 const zipSingleFile = (path, file, id, archive)  => {
-		fs.existsSync(path + "/" + file) ? archive.file(path + "/" + file, { name: file }) : null;
-		
+	fs.existsSync(path + "/" + file) ? archive.file(path + "/" + file, { name: file }) : null;
 }
 
 router.get("/polling", function(req, res, next){
-	
-	getRedisEntry(req.session.id, (entry) => {
-		if (!entry) return;
-		if (entry.filename && entry.filename !== ""){
-			res.send(entry.filename);
-		}else{
-			res.send( data[req.session.id] + "");
-			 //getCounter(req.session.id, (result) => {
-			 //	res.send(result + "");
-			 //});
-		}
+	if (!db[req.session.id]){
+		res.statusCode = 400;
+			res.send("Invalid session token");
+			return;
+	  }
+	const fileName = db[req.session.id][ENTRY_FILENAME];
+	if (fileName && fileName !== ""){
+		res.send(fileName);
+	}else{
+		res.send(db[req.session.id][ENTRY_CURRENT] + "");
+	}	
 	});
-	
-});
-const setRedisEntry = (id, total, filename) => {
-	const entry = new Object();
-	entry.total = total;
-	entry.filename = filename;
-	client.set(id, JSON.stringify(entry));
-}
-const getRedisEntry = (id, callback) => {
-	client.get(id, function(error, result) {
-		if (error) throw error;
-		const res = JSON.parse(result);
-		callback(res);
-	  });
-}
+
 const incrementCurrent = (id) => {
-	client.incr(id + "_counter");
+	db[id][ENTRY_CURRENT] ++;
 }
-const resetCurrent = (id) => {
-	client.set(id + "_counter", 0);
+
+const initEntry = (id, nbrFiles) => {
+	db[id] = {};
+	db[id][ENTRY_CURRENT]  = 0;
+	db[id][ENTRY_NBR_OF_FILES] = nbrFiles;
+	db[id][ENTRY_FILENAME] = "";
 }
+
 const getCounter = (id, callback) => {
-	client.get(id + "_counter", function(error, result) {
-		if (error) throw error;
-		callback(result);
-	  });
+	return db[id][ENTRY_CURRENT];
 }
+
 const setDone = (id, filename) => {
-	getRedisEntry(id, (entry) => setRedisEntry(id, entry.total, filename))
+	db[id][ENTRY_CURRENT] = db[id][ENTRY_NBR_OF_FILES];
+	db[id][ENTRY_FILENAME] = filename;
 }

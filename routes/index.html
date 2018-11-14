@@ -37,6 +37,14 @@
         <div style='margin-top: 100px'>
             <div>base : Absolute path to the directory in which the files are stored</div>
             <div>files : List of file names in the base directory to be zipped</div>
+            <div>Submitting the POST with a form, the following data is expected:
+                <pre>
+                    data: {
+                        "base": "path/to/files",
+                        "files": ["file1", "file2", ...]
+                        }
+                </pre>
+            </div>
             <form action="zip" method="post">
                 <textarea name="data"  rows="10" style='width: 100%; box-sizing: border-box;' placeholder="JSON data" id="textArea"></textarea>
                 <input type="submit" value="Submit"/>

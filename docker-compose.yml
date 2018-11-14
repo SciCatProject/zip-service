@@ -10,4 +10,4 @@ services:
     volumes:
       - /nfs/offline0/staff:/staff
       - /nfs/offline0/visitors:/visitors
-      - /var/lib/zip-service:/home/node/app/files
+      - /var/lib/zip-service:/home/node/app/files #location of the zipped files
