@@ -6,17 +6,30 @@
     <script src="https://cdn.rawgit.com/kimmobrunfeldt/progressbar.js/0.5.6/dist/progressbar.js"></script>
     <script>
       $( document ).ready(function() {
-        var line = new ProgressBar.Line('#progressbar')
-        iId = setInterval(function() {poll(line)}, 500);
-          });
-      function poll(line){
+        var circle = new ProgressBar.Circle('#progressbar', {
+          strokeWidth: 20,
+          easing: 'easeInOut',
+          duration: 1400,
+          color: '#3261ad',
+          trailColor: '#eee',
+          trailWidth: 20,
+          svgStyle: null
+        });
+        iId = setInterval(function() {poll(circle)}, 500);
+        $( "#status").html("0/" +  <%= total %>);
+      });
+      function poll(circle){
         $.get( "/zip/polling" ).done(function( data ){
           if (data && data.startsWith("/download")){
             clearInterval(iId);
+            circle.animate(1);
             $( "#status").html("<a target='_blank' href='" + data + "'>Download</a>");
+            $( "#title").html("Done!");
+            
           }else{
             console.log(data + "/" + <%= total %>);
-            line.animate(parseFloat(data) / parseFloat(<%= total %>));
+            circle.animate(parseFloat(data) / parseFloat(<%= total %>));
+            $( "#status").html(data + "/" +  <%= total %>);
           }
           
         });
@@ -25,9 +38,8 @@
 </head>
 <body>
   <div class="zipping">
-   <div>Please wait, the files are being zipped</div>
-    <div><img src="images/rolling.gif"></div>
-    <div id="progressbar"></div>
+   <div id="title">Please wait, the files are being zipped..</div>
+    <div  style="width: 100px;  margin: 20px auto 20px auto;" id="progressbar"></div>
     <div id="status"></div>
   </div>
 </body>

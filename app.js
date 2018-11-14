@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(session({ secret: 'fj9832mnsaf3j9adsa', resave: true, saveUninitialized: true, }));
+app.use(session({ secret: 'fj9832mnsaf3j9adsa', resave: false, saveUninitialized: true, }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/', indexRouter);
 app.use('/zip', zipRouter);

@@ -4,6 +4,7 @@ const fs = require('fs');
 const ZIP_FILES_PATH = require('../constants');
 var redis = require('redis');
 var client = redis.createClient();
+var data = new Object();
 
 router.get('/', function(req, res, next) {
 	console.log("GET /zip");
@@ -36,9 +37,10 @@ router.post('/', function(req, res, next){
 	}
 	try{
 		const id = req.session.id;
+		setRedisEntry(id, files.length, "");
+		resetCurrent(id);
+		data[id] = 0;
 		res.render("zipping", {total: ("" + files.length)});
-		
-		setRedisEntry(id, 0, files.length, "");
 		zipFiles(path, files, id);
 	}catch(error){
 		res.statusCode = 500;
@@ -62,38 +64,40 @@ const zipFiles = (path, files, id) => {
 		throw err;
 	});
 	fileStream.on('close', function() {
-		//getRedisEntry(id, (entry) => setRedisEntry(id, entry.current, entry.total, "/download?file=" + zipFile));
-		setFileName(id, "/download?file=" + zipFile);
+		setDone(id, "/download?file=" + zipFile);
+	});
+	archive.on('entry', function(){
+		incrementCurrent(id);
+		data[id]++;
+		console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAA  " + data[id]);
 	});
 	archive.pipe(fileStream);
 	files.map(file => zipSingleFile(path, file, id, archive));
-	setTimeout(function() {
-		archive.finalize();
-	}, 5000);
+	archive.finalize();
 
 }
 const zipSingleFile = (path, file, id, archive)  => {
-	setTimeout(function() {
 		fs.existsSync(path + "/" + file) ? archive.file(path + "/" + file, { name: file }) : null;
-		incrementCurrent(id);
-		//getRedisEntry(id, (entry) => setRedisEntry(id, entry.current + 1, entry.total, entry.filename));
-	}, 100);
+		
 }
 
 router.get("/polling", function(req, res, next){
+	
 	getRedisEntry(req.session.id, (entry) => {
 		if (!entry) return;
 		if (entry.filename && entry.filename !== ""){
 			res.send(entry.filename);
 		}else{
-			res.send(entry.current + "");
+			res.send( data[req.session.id] + "");
+			 //getCounter(req.session.id, (result) => {
+			 //	res.send(result + "");
+			 //});
 		}
 	});
 	
 });
-const setRedisEntry = (id, current, total, filename) => {
+const setRedisEntry = (id, total, filename) => {
 	const entry = new Object();
-	entry.current = current;
 	entry.total = total;
 	entry.filename = filename;
 	client.set(id, JSON.stringify(entry));
@@ -102,19 +106,21 @@ const getRedisEntry = (id, callback) => {
 	client.get(id, function(error, result) {
 		if (error) throw error;
 		const res = JSON.parse(result);
-		//console.log("current from db: " + res.current);
 		callback(res);
 	  });
 }
-const incrementCurrent = (id) =>{
-
-	getRedisEntry(id, (entry) => {
-		console.log("ID: " + id);
-		const newCurrent = entry.current + 1;
-		console.log("incrementing to " + newCurrent);
-		setRedisEntry(id, newCurrent, entry.total, entry.filename);
-	});
+const incrementCurrent = (id) => {
+	client.incr(id + "_counter");
 }
-const setFileName = (id, filename) => {
-	getRedisEntry(id, (entry) => setRedisEntry(id, entry.current, entry.total, filename))
+const resetCurrent = (id) => {
+	client.set(id + "_counter", 0);
+}
+const getCounter = (id, callback) => {
+	client.get(id + "_counter", function(error, result) {
+		if (error) throw error;
+		callback(result);
+	  });
+}
+const setDone = (id, filename) => {
+	getRedisEntry(id, (entry) => setRedisEntry(id, entry.total, filename))
 }
