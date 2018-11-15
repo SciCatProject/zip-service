@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-const ZIP_FILES_PATH = require('constants');
+const ZIP_FILES_PATH = require('./constants');
 const indexRouter = require('./routes/index');
 const zipRouter = require('./routes/zip');
 const downloadRouter = require('./routes/download');
@@ -43,27 +43,31 @@ app.use(function(err, req, res, next) {
 
 //Delete all zip files in ZIP_FILES_PATH older than one hour.
 const deleteZipFiles = () => {
-  fs.readdir(ZIP_FILES_PATH, function(err, files) {
-    files.forEach(function(file, index) {
-      fs.stat(path.join(ZIP_FILES_PATH, file), function(err, stat) {
-        var endTime, now;
-        if (err) {
-          return console.error(err);
-        }
-        now = new Date().getTime();
-        endTime = new Date(stat.ctime).getTime() + 60 * 60 * 1000;
-        if (now > endTime) {
-          return rimraf(path.join(ZIP_FILES_PATH, file), function(err) {
-            if (err) {
-              return console.error(err);
-            }
-            console.log('successfully deleted');
-          });
-        }
+  try{
+    fs.readdir(ZIP_FILES_PATH, function(err, files) {
+      files.forEach(function(file, index) {
+        fs.stat(path.join(ZIP_FILES_PATH, file), function(err, stat) {
+          var endTime, now;
+          if (err) {
+            return console.error(err);
+          }
+          now = new Date().getTime();
+          endTime = new Date(stat.ctime).getTime() + 60 * 60 * 1000;
+          if (now > endTime) {
+            return rimraf(path.join(ZIP_FILES_PATH, file), function(err) {
+              if (err) {
+                return console.error(err);
+              }
+              console.log('successfully deleted');
+            });
+          }
+        });
       });
     });
-  });
+  }catch(error){
+    console.log("Couldn't delete files");
+  }
 }
-setInterval(deleteZipFiles, 1000 * 60 * 60);
+setInterval(deleteZipFiles, 60 * 60 * 1000);
 
 module.exports = app;
