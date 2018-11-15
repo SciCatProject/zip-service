@@ -20,7 +20,6 @@ router.get('/', function(req, res, next) {
 /* POST zip */
 router.post('/', function(req, res, next){
 	const json = JSON.parse(req.body.data);
-	console.log("POST /zip");
 	console.log(json);
 	const path = json["base"];
 	if (!path || path.length === 0){
@@ -51,12 +50,10 @@ router.post('/', function(req, res, next){
 	}
 
 });
-module.exports = router;
-
 const zipFiles = (path, files, id) => {
 	const zipFile = require('crypto').createHash('md5').update(path).digest("hex") + "_" + new Date().getTime() + ".zip";
 	const archiver = require('archiver');
-	const fileStream = fs.createWriteStream(ZIP_FILES_PATH + zipFile);
+	const fileStream = fs.createWriteStream(ZIP_FILES_PATH + "/" + zipFile);
 	const archive = archiver('zip', {
 	gzip: true,
 	zlib: { level: 9 }
@@ -72,7 +69,12 @@ const zipFiles = (path, files, id) => {
 		incrementCurrent(id);
 	});
 	archive.pipe(fileStream);
-	files.map(file => zipSingleFile(path, file, id, archive));
+	try{
+		files.map(file => zipSingleFile(path, file, id, archive));
+	}catch(error){
+		console.log("Failed zipping " + path + "/" + file);
+	}
+	
 	archive.finalize();
 
 }
@@ -95,7 +97,7 @@ router.get("/polling", function(req, res, next){
 	});
 
 const incrementCurrent = (id) => {
-	db[id][ENTRY_CURRENT] ++;
+	db[id][ENTRY_CURRENT]++;
 }
 
 const initEntry = (id, nbrFiles) => {
@@ -113,3 +115,5 @@ const setDone = (id, filename) => {
 	db[id][ENTRY_CURRENT] = db[id][ENTRY_NBR_OF_FILES];
 	db[id][ENTRY_FILENAME] = filename;
 }
+
+module.exports = router;
