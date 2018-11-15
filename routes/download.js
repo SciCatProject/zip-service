@@ -9,7 +9,7 @@ router.get('/', function(req, res, next) {
 		  return;
     }
   try{
-    const file = require('fs').readFileSync(ZIP_FILES_PATH + "/" + req.query.file, "binary");
+    var file = require('fs').readFileSync(ZIP_FILES_PATH + "/" + req.query.file, "binary");
   }catch(error){
     res.statusCode = 400;
     res.send("File not found");
