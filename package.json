@@ -17,7 +17,6 @@
     "jade": "~1.11.0",
     "morgan": "~1.9.0",
     "progressbar.js": "^1.0.1",
-    "redis": "^2.8.0",
     "rimraf": "^2.6.2",
     "sessions": "0.0.2-7"
   }
