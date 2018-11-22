@@ -15,10 +15,11 @@
           trailWidth: 20,
           svgStyle: null
         });
-        iId = setInterval(function() {poll(circle)}, 500);
-        $( "#status").html("0/" +  <%= total %>);
+        var total = <%= total %>;
+        iId = setInterval(function() {poll(circle, total)}, 500);
+        $( "#status").html("0/" +  total);
       });
-      function poll(circle){
+      function poll(circle, total){
         $.get( "/zip/polling" ).done(function( data ){
           if (data && data.startsWith("/download")){
             clearInterval(iId);
@@ -27,9 +28,11 @@
             $( "#title").html("Done!");
             
           }else{
-            console.log(data + "/" + <%= total %>);
-            circle.animate(parseFloat(data) / parseFloat(<%= total %>));
-            $( "#status").html(data + "/" +  <%= total %>);
+            console.log(data + "/" + total);
+            //On average, we'll be halfway through zipping file_n while the last zipped file was file_(n-1).
+            const fudgeFactor = 0.5; 
+            circle.animate((parseFloat(data) + fudgeFactor) / parseFloat(total));
+            $( "#status").html(data + "/" +  total);
           }
           
         });
