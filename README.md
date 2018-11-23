@@ -6,11 +6,12 @@ A service for zipping and downloading a group of files with a common directory o
 `docker-compose up` or `npm install && npm start`
 
 # Usage
-Running on port 3011, a simple test GUI with example data is available at `/`. Zip requests are sent as POST to `/zip`, which returns a relative url to the downloadable zip-file. The post body should have the following format:
+Zip requests are sent as POST to `/zip`, which redirect to a download progress page. The post body should have the following format:
 
 ```json
-{
+data: {
   "base": "/path/to/files",
   "files": ["file1","file2","file3"]
 }
 ```
+`offline-0:/gpfs/lunarc0/visitors` and `offline-0:/gpfs/lunarc0/staff` are mounted directly under the root in the docker container, so their corresponding `base` values would just be `"/visitors"` and `"/staff"`, respectively.

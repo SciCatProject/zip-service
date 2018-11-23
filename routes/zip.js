@@ -2,9 +2,6 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const ZIP_FILES_PATH = require('../constants');
-//Don't need a real DB yet, maybe never. Ditching redis for a global object
-//var redis = require('redis');
-//var client = redis.createClient();
 db = new Object();
 const ENTRY_CURRENT = "CURRENT";
 const ENTRY_NBR_OF_FILES = "TOTAL";
@@ -39,10 +36,10 @@ router.post('/', function(req, res, next){
 		return;
 	}
 	try{
-		const id = req.session.id;
-		initEntry(id, files.length);
-		res.render("zipping", {total: ("" + files.length)});
-		zipFiles(path, files, id);
+		const zipFileName = require('crypto').createHash('md5').update(path).digest("hex") + "_" + new Date().getTime() + ".zip";
+		initEntry(zipFileName, files.length);
+		res.render("zipping", {total: ("" + files.length), file: zipFileName});
+		zipFiles(path, files, zipFileName);
 	}catch(error){
 		res.statusCode = 500;
 		res.send("The files could not be zipped");
@@ -50,10 +47,9 @@ router.post('/', function(req, res, next){
 	}
 
 });
-const zipFiles = (path, files, id) => {
-	const zipFile = require('crypto').createHash('md5').update(path).digest("hex") + "_" + new Date().getTime() + ".zip";
+const zipFiles = (path, files, zipFileName) => {
 	const archiver = require('archiver');
-	const fileStream = fs.createWriteStream(ZIP_FILES_PATH + "/" + zipFile);
+	const fileStream = fs.createWriteStream(ZIP_FILES_PATH + "/" + zipFileName);
 	const archive = archiver('zip', {
 	gzip: true,
 	zlib: { level: 9 }
@@ -63,14 +59,14 @@ const zipFiles = (path, files, id) => {
 		throw err;
 	});
 	fileStream.on('close', function() {
-		setDone(id, "/download?file=" + zipFile);
+		setDone(zipFileName, "/download/" + zipFileName);
 	});
 	archive.on('entry', function(){
-		incrementCurrent(id);
+		incrementCurrent(zipFileName);
 	});
 	archive.pipe(fileStream);
 	try{
-		files.map(file => zipSingleFile(path, file, id, archive));
+		files.map(file => zipSingleFile(path, file, archive));
 	}catch(error){
 		console.log("Failed zipping " + path + "/" + file);
 	}
@@ -78,37 +74,33 @@ const zipFiles = (path, files, id) => {
 	archive.finalize();
 
 }
-const zipSingleFile = (path, file, id, archive)  => {
+const zipSingleFile = (path, file, archive)  => {
 	fs.existsSync(path + "/" + file) ? archive.file(path + "/" + file, { name: file }) : null;
 }
 
-router.get("/polling", function(req, res, next){
-	if (!db[req.session.id]){
+router.get("/polling/:file", function(req, res, next){
+	if (!req.params.file){
 		res.statusCode = 400;
-			res.send("Invalid session token");
+			res.send("Invalid file");
 			return;
 	  }
-	const fileName = db[req.session.id][ENTRY_FILENAME];
+	const fileName = db[req.params.file][ENTRY_FILENAME];
 	if (fileName && fileName !== ""){
 		res.send(fileName);
 	}else{
-		res.send(db[req.session.id][ENTRY_CURRENT] + "");
+		res.send(db[req.params.file][ENTRY_CURRENT] + "");
 	}	
 	});
 
-const incrementCurrent = (id) => {
-	db[id][ENTRY_CURRENT]++;
+const incrementCurrent = (file) => {
+	db[file][ENTRY_CURRENT]++;
 }
 
-const initEntry = (id, nbrFiles) => {
-	db[id] = {};
-	db[id][ENTRY_CURRENT]  = 0;
-	db[id][ENTRY_NBR_OF_FILES] = nbrFiles;
-	db[id][ENTRY_FILENAME] = "";
-}
-
-const getCounter = (id, callback) => {
-	return db[id][ENTRY_CURRENT];
+const initEntry = (zipFileName, nbrFiles) => {
+	db[zipFileName] = {};
+	db[zipFileName][ENTRY_CURRENT]  = 0;
+	db[zipFileName][ENTRY_NBR_OF_FILES] = nbrFiles;
+	db[zipFileName][ENTRY_FILENAME] = "";
 }
 
 const setDone = (id, filename) => {

@@ -15,12 +15,13 @@
           trailWidth: 20,
           svgStyle: null
         });
+        var file = '<%= file %>';
         var total = <%= total %>;
-        iId = setInterval(function() {poll(circle, total)}, 500);
+        iId = setInterval(function() {poll(circle, total, file)}, 500);
         $( "#status").html("0/" +  total);
       });
-      function poll(circle, total){
-        $.get( "/zip/polling" ).done(function( data ){
+      function poll(circle, total, file){
+        $.get( "/zip/polling/" + file ).done(function( data ){
           if (data && data.startsWith("/download")){
             clearInterval(iId);
             circle.animate(1);
