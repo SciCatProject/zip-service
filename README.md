@@ -14,4 +14,4 @@ data: {
   "files": ["file1","file2","file3"]
 }
 ```
-`offline-0:/gpfs/lunarc0/visitors` and `offline-0:/gpfs/lunarc0/staff` are mounted directly under the root in the docker container, so their corresponding `base` values would just be `"/visitors"` and `"/staff"`, respectively.
+`offline-0:/gpfs/lunarc0/visitors` and `offline-0:/gpfs/lunarc0/staff` are mounted  under `/data `in the docker container, so their corresponding `base` values would  be `"data/visitors"` and `"data/staff"`, respectively.

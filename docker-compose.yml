@@ -8,6 +8,6 @@ services:
     ports:
       - "3011:3011"
     volumes:
-      - /nfs/offline0/staff:/staff
-      - /nfs/offline0/visitors:/visitors
+      - /nfs/offline0/staff:/data/staff
+      - /nfs/offline0/visitors:/data/visitors
       - /tmp/zip-service:/home/node/app/files #location of the zipped files
