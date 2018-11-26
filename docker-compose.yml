@@ -1,13 +1,27 @@
-version: "2"
+version: "3"
+
+networks:
+  proxy:
+    external: true
+
 services:
-  app:
-    container_name: app
-    restart: always
+  node:
+    image: "docker.maxiv.lu.se/zip-service"
     user: "2175:1300"
-    build: .
+    restart: always
+    environment:
+      - NODE_ENV=production 
+      - PORT=3011
     ports:
       - "3011:3011"
+    networks:
+      - proxy
+    labels:
+      - traefik.backend=zip-service
+      - traefik.frontend.rule=Host:zip-service.maxiv.lu.se
+      - traefik.docker.network=proxy
+      - traefik.port=3011
     volumes:
-      - /nfs/offline0/staff:/data/staff
-      - /nfs/offline0/visitors:/data/visitors
+      - /nfs/offline0/staff:/staff
+      - /nfs/offline0/visitors:/visitors
       - /tmp/zip-service:/home/node/app/files #location of the zipped files
