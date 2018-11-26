@@ -11,16 +11,16 @@ services:
     restart: always
     environment:
       - NODE_ENV=production 
-      - PORT=3011
+      - PORT=3012
     ports:
-      - "3011:3011"
+      - "3012:3012"
     networks:
       - proxy
     labels:
       - traefik.backend=zip-service
       - traefik.frontend.rule=Host:zip-service.maxiv.lu.se
       - traefik.docker.network=proxy
-      - traefik.port=3011
+      - traefik.port=3012
     volumes:
       - /nfs/offline0/staff:/staff
       - /nfs/offline0/visitors:/visitors
