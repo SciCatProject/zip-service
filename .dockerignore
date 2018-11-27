@@ -1,1 +1,7 @@
 node_modules
+
+# testing
+testdata
+
+# generated zips
+files/*
