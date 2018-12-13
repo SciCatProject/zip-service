@@ -15,19 +15,19 @@ router.get('/', function(req, res, next) {
 });
 
 /* POST zip */
-router.post('/', function(req, res, next){
-	const json = JSON.parse(req.body.data);
-	console.log(json);
-	const path = json["base"];
+router.post('/', function(req, res) {
+	const data = req.body;
+
+	const path = data["base"];
 	if (!path || path.length === 0){
-		res.render("error", {msg: "JSON missing 'base'"})
+		res.render("error", {msg: "Data missing 'base'"})
 		return;
 	}
-	const files = json["files"];
-	console.log("PATH: " + files);
+
+	const files = data["files"];
 	if (!files || files.length === 0){
 		res.statusCode = 400;
-		res.send("JSON missing 'files'");
+		res.send("Data missing 'files'");
 		return;
 	}
 	if (!fs.existsSync(path)) {
