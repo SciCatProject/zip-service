@@ -3,7 +3,6 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const ZIP_FILES_PATH = require('./constants');
-const indexRouter = require('./routes/index');
 const zipRouter = require('./routes/zip');
 const downloadRouter = require('./routes/download');
 const session =  require('express-session');
@@ -19,7 +18,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({ secret: 'fj9832mnsaf3j9adsa', resave: false, saveUninitialized: true, }));
-app.use('/', indexRouter);
+
 app.use('/zip', zipRouter);
 app.use('/download', downloadRouter);
 
