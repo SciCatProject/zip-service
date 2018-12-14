@@ -9,9 +9,9 @@ build_image:
   only:
     - master
 
-deploy_image:
-  stage: deploy
-  script:
-  - "curl -H 'Authorization: Bearer gOj9o8s3RapHiThfNbImaFYMDoOKTG' -k --request POST https://ansible.maxiv.lu.se/api/v2/job_templates/37/launch/"
-  only:
-    - master
+# deploy_image:
+#  stage: deploy
+#  script:
+#  - "curl -H 'Authorization: Bearer gOj9o8s3RapHiThfNbImaFYMDoOKTG' -k --request POST https://ansible.maxiv.lu.se/api/v2/job_templates/37/launch/"
+#  only:
+#    - master
