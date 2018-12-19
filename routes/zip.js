@@ -11,14 +11,13 @@ const jwt  = require('jsonwebtoken');
 
 /* POST zip */
 router.post('/', function(req, res) {
+	const data = req.body;
 	try{
-		jwtDecoded = jwt.verify(req.cookies.jwt, config.jwtSecret); 
+		jwtDecoded = jwt.verify(data["jwt"], config.jwtSecret); 
 	}catch(e){
 		res.render("error", {msg: "Invalid JSON web token"})
 		return;
 	}
-
-	const data = req.body;
 
 	const path = data["base"];
 	if (!path || path.length === 0){
