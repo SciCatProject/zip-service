@@ -6,21 +6,29 @@ db = new Object();
 const ENTRY_CURRENT = "CURRENT";
 const ENTRY_NBR_OF_FILES = "TOTAL";
 const ENTRY_FILENAME = "FILENAME";
-
-router.get('/', function(req, res, next) {
-	console.log("GET /zip");
-	res.statusCode = 400;
-	res.send("Only accepts POST");
-	return;
-});
+const config = require('../config.json');
+const jwt  = require('jsonwebtoken');
 
 /* POST zip */
 router.post('/', function(req, res) {
+	try{
+		jwtDecoded = jwt.verify(req.cookies.jwt, config.jwtSecret); 
+	}catch(e){
+		res.render("error", {msg: "Invalid JSON web token"})
+		return;
+	}
+
 	const data = req.body;
 
 	const path = data["base"];
 	if (!path || path.length === 0){
 		res.render("error", {msg: "Data missing 'base'"})
+		return;
+	}
+	var groups = jwtDecoded.groups;
+	const valid = groups.filter(group => group.trim() && path.indexOf(group) > -1).length > 0;
+	if (!valid){
+		res.render("error", {msg: "You are not authorized to access " + path})
 		return;
 	}
 

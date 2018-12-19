@@ -22,11 +22,6 @@ app.use(session({ secret: 'fj9832mnsaf3j9adsa', resave: false, saveUninitialized
 app.use('/zip', zipRouter);
 app.use('/download', downloadRouter);
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
-
 // error handler
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
@@ -36,6 +31,11 @@ app.use(function(err, req, res, next) {
   // render the error page
   res.status(err.status || 500);
   res.render('error', {msg: " 500 - Internal server error:" + err.message});
+});
+
+// catch 404 and forward to error handler. Has to be placed after all app.use
+app.use(function(req, res, next) {
+  res.status(404).render("error", {msg: "Not found"})
 });
 
 //Delete all zip files in ZIP_FILES_PATH older than one hour.
