@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var app = require('../app');
+var cors = require('cors');
 var debug = require('debug')('zip-service:server');
 var http = require('http');
 
@@ -10,6 +11,8 @@ var http = require('http');
 
 var port = normalizePort(process.env.PORT || '3011');
 app.set('port', port);
+app.use(cors());
+
 
 /**
  * Create HTTP server.

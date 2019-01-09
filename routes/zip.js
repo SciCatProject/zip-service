@@ -12,6 +12,7 @@ const jwt  = require('jsonwebtoken');
 /* POST zip */
 router.post('/', function(req, res) {
 	const data = req.body;
+	console.log(data);
 	try{
 		jwtDecoded = jwt.verify(data["jwt"], config.jwtSecret); 
 	}catch(e){
