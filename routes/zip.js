@@ -13,6 +13,11 @@ const jwt  = require('jsonwebtoken');
 router.post('/', function(req, res) {
 	const data = req.body;
 	console.log(data);
+	if (!config.jwtSecret){
+		res.statusCode = 500;
+		res.send("No JWT secret has been set for zip-service");
+		return;
+	}
 	try{
 		jwtDecoded = jwt.verify(data["jwt"], config.jwtSecret); 
 	}catch(e){
