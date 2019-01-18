@@ -6,6 +6,8 @@ db = new Object();
 const ENTRY_CURRENT = "CURRENT";
 const ENTRY_NBR_OF_FILES = "TOTAL";
 const ENTRY_FILENAME = "FILENAME";
+const ZIP_SIZE_AFTER_LAST_COMPLETED_FILE = "ZIP_SIZE_AFTER_LAST_COMPLETED_FILE";
+const SIZE_OF_CURRENT_FILE = "SIZE_OF_CURRENT_FILE";
 const config = require('../config.json');
 const jwt  = require('jsonwebtoken');
 
@@ -51,7 +53,7 @@ router.post('/', function(req, res) {
 	try{
 		const zipFileName = require('crypto').createHash('md5').update(path).digest("hex") + "_" + new Date().getTime() + ".zip";
 		initEntry(zipFileName, files.length);
-		res.render("zipping", {total: ("" + files.length), file: zipFileName});
+		res.render("zipping", {total: (files.length), file: zipFileName});
 		zipFiles(path, files, zipFileName);
 	}catch(error){
 		res.statusCode = 500;
@@ -79,7 +81,7 @@ const zipFiles = (path, files, zipFileName) => {
 	});
 	archive.pipe(fileStream);
 	try{
-		files.map(file => zipSingleFile(path, file, archive));
+		files.map(file => zipSingleFile(path, file, archive, zipFileName));
 	}catch(error){
 		console.log("Failed zipping " + path + "/" + file);
 	}
@@ -87,7 +89,9 @@ const zipFiles = (path, files, zipFileName) => {
 	archive.finalize();
 
 }
-const zipSingleFile = (path, file, archive)  => {
+const zipSingleFile = (path, file, archive, zipFileName)  => {
+	db[zipFileName][ZIP_SIZE_AFTER_LAST_COMPLETED_FILE] = getFilesizeInBytes(ZIP_FILES_PATH + "/" + zipFileName);
+	db[zipFileName][SIZE_OF_CURRENT_FILE] = getFilesizeInBytes(path + "/" + file);
 	fs.existsSync(path + "/" + file) ? archive.file(path + "/" + file, { name: file }) : null;
 }
 
@@ -101,7 +105,7 @@ router.get("/polling/:file", function(req, res, next){
 	if (fileName && fileName !== ""){
 		res.send(fileName);
 	}else{
-		res.send(db[req.params.file][ENTRY_CURRENT] + "");
+		res.send((db[req.params.file][ENTRY_CURRENT] + getFractionalProgress(req.params.file)) + "");
 	}	
 	});
 
@@ -114,11 +118,28 @@ const initEntry = (zipFileName, nbrFiles) => {
 	db[zipFileName][ENTRY_CURRENT]  = 0;
 	db[zipFileName][ENTRY_NBR_OF_FILES] = nbrFiles;
 	db[zipFileName][ENTRY_FILENAME] = "";
+	db[zipFileName][ZIP_SIZE_AFTER_LAST_COMPLETED_FILE] = 0;
+	db[zipFileName][SIZE_OF_CURRENT_FILE] = 0;
 }
 
 const setDone = (id, filename) => {
 	db[id][ENTRY_CURRENT] = db[id][ENTRY_NBR_OF_FILES];
 	db[id][ENTRY_FILENAME] = filename;
+}
+
+const getFilesizeInBytes = (filename) => {
+    const stats = fs.statSync(filename);
+    return stats.size;
+}
+
+const getFractionalProgress = (zipFileName) => {
+	//current size of the zipfile being built
+	const zipSize =  getFilesizeInBytes(ZIP_FILES_PATH + "/" + zipFileName);
+	//number of bytes that has been written to the zip file that belongs to the current file
+	const bytesForCurrentFile = zipSize - db[zipFileName][ZIP_SIZE_AFTER_LAST_COMPLETED_FILE];
+	//fraction of that in relation to the total size of the current file (assuming no compression)
+	const fraction = bytesForCurrentFile / db[zipFileName][SIZE_OF_CURRENT_FILE];
+	return fraction;
 }
 
 module.exports = router;

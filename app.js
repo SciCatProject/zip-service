@@ -5,6 +5,7 @@ const logger = require('morgan');
 const ZIP_FILES_PATH = require('./constants');
 const zipRouter = require('./routes/zip');
 const downloadRouter = require('./routes/download');
+const testRouter = require('./routes/test');
 const session =  require('express-session');
 const fs = require('fs');
 const rimraf = require('rimraf');
@@ -19,6 +20,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({ secret: 'fj9832mnsaf3j9adsa', resave: false, saveUninitialized: true, }));
 
+//this test UI is pretty good to have since curl wont run the js returned from zipping, and hence won't poll the file
+app.use('/test', testRouter);
 app.use('/zip', zipRouter);
 app.use('/download', downloadRouter);
 

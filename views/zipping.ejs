@@ -30,11 +30,8 @@
             $( "#title").html("Done!");
             
           }else{
-            console.log(data + "/" + total);
-            //On average, we'll be halfway through zipping file_n while the last zipped file was file_(n-1).
-            const fudgeFactor = 0.5; 
-            circle.animate((parseFloat(data) + fudgeFactor) / parseFloat(total));
-            $( "#status").html(data + "/" +  total);
+            circle.animate(parseFloat(data) / total);
+            $( "#status").html(Math.floor(parseFloat(data)) + "/" +  total);
           }
           
         });
