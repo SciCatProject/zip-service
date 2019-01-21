@@ -18,30 +18,32 @@
         });
         var file = '<%= file %>';
         var total = <%= total %>;
-        iId = setInterval(function() {poll(circle, total, file)}, 500);
-        $( "#status").html("0/" +  total);
+        iId = setInterval(function() {poll(circle, total, file)}, 1000);
+        $( "#status" ).html("0/" +  total);
       });
+
       function poll(circle, total, file){
         $.get( "/zip/polling/" + file ).done(function( data ){
           if (data && data.startsWith("/download")){
             clearInterval(iId);
             circle.animate(1);
-            $( "#status").html("<a target='_blank' href='" + data + "'>Download</a>");
-            $( "#title").html("Done!");
+            $( "#status" ).html("<a target='_blank' href='" + data + "'>Download</a>");
+            $( "#title" ).html("Done!");
             
           }else{
             circle.animate(parseFloat(data) / total);
-            $( "#status").html(Math.floor(parseFloat(data)) + "/" +  total);
+            $( "#status" ).html(Math.floor(parseFloat(data)) + "/" +  total);
           }
           
         });
       }
+
     </script>
 </head>
 <body>
   <div class="zipping">
    <div id="title">Please wait, the files are being zipped...</div>
-    <div  style="width: 100px;  margin: 20px auto 20px auto;" id="progressbar"></div>
+    <div  style="width: 100px;  margin: 20px auto;" id="progressbar"></div>
     <div id="status"></div>
   </div>
 </body>

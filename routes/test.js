@@ -9,14 +9,14 @@ router.get('/', function(req, res, next) {
     let file2 = "";
     try {
         const config = require('../local.config.json');
-        jwt = config.jwt;
-        base = config.base;
-        file0 = config.files[0];
-        file1 = config.files[1];
-        file2 = config.files[2];
+        jwt = config.test_jwt;
+        base = config.test_base;
+        file0 = config.test_files[0];
+        file1 = config.test_files[1];
+        file2 = config.test_files[2];
 
        }catch (e) {}//defaulting to empty strings
-       res.render('test', {jwt, base, file0, file1, file2} );
+    res.render('test', {jwt, base, file0, file1, file2} );
 });
 
 module.exports = router;

@@ -1,14 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
-const ZIP_FILES_PATH = require('../constants');
 db = new Object();
 const ENTRY_CURRENT = "CURRENT";
 const ENTRY_NBR_OF_FILES = "TOTAL";
 const ENTRY_FILENAME = "FILENAME";
 const ZIP_SIZE_AFTER_LAST_COMPLETED_FILE = "ZIP_SIZE_AFTER_LAST_COMPLETED_FILE";
 const SIZE_OF_CURRENT_FILE = "SIZE_OF_CURRENT_FILE";
-const config = require('../config.json');
+const config = require('../local.config.json');
 const jwt  = require('jsonwebtoken');
 
 /* POST zip */
@@ -26,20 +25,14 @@ router.post('/', function(req, res) {
 		res.render("error", {msg: "Invalid JSON web token"})
 		return;
 	}
-
 	const path = data["base"];
 	if (!path || path.length === 0){
 		res.render("error", {msg: "Data missing 'base'"})
 		return;
 	}
 	var groups = jwtDecoded.groups;
-	const valid = groups.filter(group => group.trim() && path.indexOf(group) > -1).length > 0;
-	if (!valid){
-		res.render("error", {msg: "You are not authorized to access " + path})
-		return;
-	}
-
 	const files = data["files"];
+
 	if (!files || files.length === 0){
 		res.statusCode = 400;
 		res.send("Data missing 'files'");
@@ -50,6 +43,13 @@ router.post('/', function(req, res) {
 		res.send("Directory '" + path + "' does not exist");
 		return;
 	}
+
+	const valid = isAuthorized(groups, path, files, config.institution);
+	if (!valid){
+		res.render("error", {msg: "You are not authorized to access " + path})
+		return;
+	}
+
 	try{
 		const zipFileName = require('crypto').createHash('md5').update(path).digest("hex") + "_" + new Date().getTime() + ".zip";
 		initEntry(zipFileName, files.length);
@@ -64,7 +64,7 @@ router.post('/', function(req, res) {
 });
 const zipFiles = (path, files, zipFileName) => {
 	const archiver = require('archiver');
-	const fileStream = fs.createWriteStream(ZIP_FILES_PATH + "/" + zipFileName);
+	const fileStream = fs.createWriteStream(config.path_to_zipped_files + "/" + zipFileName);
 	const archive = archiver('zip', {
 	gzip: true,
 	zlib: { level: 9 }
@@ -90,7 +90,7 @@ const zipFiles = (path, files, zipFileName) => {
 
 }
 const zipSingleFile = (path, file, archive, zipFileName)  => {
-	db[zipFileName][ZIP_SIZE_AFTER_LAST_COMPLETED_FILE] = getFilesizeInBytes(ZIP_FILES_PATH + "/" + zipFileName);
+	db[zipFileName][ZIP_SIZE_AFTER_LAST_COMPLETED_FILE] = getFilesizeInBytes(config.path_to_zipped_files + "/" + zipFileName);
 	db[zipFileName][SIZE_OF_CURRENT_FILE] = getFilesizeInBytes(path + "/" + file);
 	fs.existsSync(path + "/" + file) ? archive.file(path + "/" + file, { name: file }) : null;
 }
@@ -102,7 +102,7 @@ router.get("/polling/:file", function(req, res, next){
 			return;
 	  }
 	const fileName = db[req.params.file][ENTRY_FILENAME];
-	if (fileName && fileName !== ""){
+	if (fileName && fileName !== ""){ //a set file name implies the zipping and done
 		res.send(fileName);
 	}else{
 		res.send((db[req.params.file][ENTRY_CURRENT] + getFractionalProgress(req.params.file)) + "");
@@ -134,12 +134,19 @@ const getFilesizeInBytes = (filename) => {
 
 const getFractionalProgress = (zipFileName) => {
 	//current size of the zipfile being built
-	const zipSize =  getFilesizeInBytes(ZIP_FILES_PATH + "/" + zipFileName);
+	const zipSize =  getFilesizeInBytes(config.path_to_zipped_files + "/" + zipFileName);
 	//number of bytes that has been written to the zip file that belongs to the current file
 	const bytesForCurrentFile = zipSize - db[zipFileName][ZIP_SIZE_AFTER_LAST_COMPLETED_FILE];
 	//fraction of that in relation to the total size of the current file (assuming no compression)
 	const fraction = bytesForCurrentFile / db[zipFileName][SIZE_OF_CURRENT_FILE];
 	return fraction;
+}
+
+const isAuthorized = (groups, path, files, institution) => {
+	if (institution === "maxiv"){
+		return groups.filter(group => group.trim() && path.indexOf(group) > -1).length > 0
+	}
+	return true;
 }
 
 module.exports = router;

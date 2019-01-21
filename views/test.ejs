@@ -3,24 +3,25 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+        <link rel="stylesheet" type="text/css" href="css/test.css">
         <title>zip-service</title>
     </head>
     <body>
         <form action="zip" method="POST">
             <div>
-                jwt: <input  name="jwt" value='<%= jwt %>'/>
+                <span>JWT</span><input type="text" name="jwt" value='<%= jwt %>'/>
             </div>
             <div>
-                Base: <input  name="base" value='<%= base %>' />
+                <span>Base</span><input type="text" name="base" value='<%= base %>' />
             </div>
             <div>
-                File 1: <input name="files[0]" value='<%= file0 %>'/>
+                <span>File 1</span><input type="text" name="files[0]" value='<%= file0 %>'/>
             </div>
             <div>
-                    File 2: <input name="files[1]" value='<%= file1 %>'/>
+                <span>File 2</span><input type="text" name="files[1]" value='<%= file1 %>'/>
             </div>
             <div>
-                    File 3: <input name="files[2]" value='<%= file2 %>'/>
+                <span>File 3</span><input type="text" name="files[2]" value='<%= file2 %>'/>
             </div>
             <div>
                 <input type="submit" value="Download"></button>

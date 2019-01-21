@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const ZIP_FILES_PATH = require('../constants');
+const config = require('../local.config.json');
 
 router.get('/:file', function(req, res, next) {
     if (!req.params.file){
@@ -9,7 +9,7 @@ router.get('/:file', function(req, res, next) {
 		  return;
     }
   try{
-    var file = require('fs').readFileSync(ZIP_FILES_PATH + "/" + req.params.file, "binary");
+    var file = require('fs').readFileSync(config.path_to_zipped_files + "/" + req.params.file, "binary");
   }catch(error){
     res.statusCode = 400;
     res.send("File not found");
