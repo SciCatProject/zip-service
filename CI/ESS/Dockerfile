@@ -5,6 +5,7 @@ RUN npm config set proxy  $http_proxy
 RUN npm config set https-proxy  $http_proxy
 RUN npm config set registry http://registry.npmjs.org/
 RUN npm config set strict-ssl false
+WORKDIR /files
 WORKDIR /home/node/app
 COPY . .
 RUN npm install --no-cache
