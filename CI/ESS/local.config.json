@@ -1,0 +1,12 @@
+{
+   "path_to_zipped_files": "./files",
+   "jwtExpiresIn": "1h",
+   "jwtSecret": "insertsecrethere",
+   "institution": "ess",
+   "zip_file_retention_millis": 3600000,
+   "test_jwt":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJncm91cHMiOlsiZXNzIiwibG9raSIsIm9kaW4iXSwiaWF0IjoxNTY3NDI3NzA5LCJleHAiOjE1Njc0MzEzMDl9.ENcuTBS67shghefL3wRCHxoyobwZGaFQIUvSZ0cywcE",
+   "test_base":"/nfs/groups/beamlines/v20/14CD3N/",
+   "test_files":[
+      "nicos_00000490.hdf"
+    ]
+ }
