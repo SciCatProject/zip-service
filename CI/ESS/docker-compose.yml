@@ -11,5 +11,6 @@ services:
     ports:
       - "3012:3012"
     volumes:
-      - /nfs/groups/beamlines/v20/:/nfs/groups/beamlines/v20
+      - /nfs/groups/beamlines/:/nfs/groups/beamlines
+      - /users/detector/experiments/:/users/detector/experiments
       - /tmp/zip-service:/home/node/app/files #location of the zipped files

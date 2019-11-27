@@ -1,4 +1,4 @@
-FROM node:8
+FROM node:8-alpine
 ENV http_proxy "http://172.18.12.30:8123"
 ENV https_proxy $http_proxy
 RUN npm config set proxy  $http_proxy
