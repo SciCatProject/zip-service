@@ -6,9 +6,12 @@ const jwt = require("jsonwebtoken");
 const StreamZip = require("node-stream-zip");
 
 const config = require("../local.config.json");
+const homePath = "/nfs/groups/beamlines/dram";
 
 router.post("/", function(req, res) {
   console.log("req", req);
+  const data = req.body;
+
   if (!config.jwtSecret) {
     return res.status(500).send("No JWT secret has been set for zip-service\n");
   }
@@ -17,11 +20,11 @@ router.post("/", function(req, res) {
     return res.status(400).send("No files were uploaded\n");
   }
 
-  if (!req.body["jwt"]) {
+  if (!data["jwt"]) {
     return res.status(400).send("JSON web token not provided\n");
   }
 
-  const jwtValue = req.body["jwt"];
+  const jwtValue = data["jwt"];
 
   jwt.verify(jwtValue, config.jwtSecret, (err, decoded) => {
     if (err) {
@@ -29,6 +32,22 @@ router.post("/", function(req, res) {
     }
 
     console.log("decoded jwt", decoded);
+
+    let saveDir;
+    if (data["dir"]) {
+      saveDir = data["dir"];
+    } else {
+      saveDir = generateDirName();
+      const homeDir = fs.readdirSync(homePath);
+      if (!homeDir.includes(saveDir)) {
+        fs.mkdirSync(path.join(homePath, saveDir));
+      }
+    }
+
+    console.log("saveDir", saveDir);
+
+    const savePath = path.join(homePath, saveDir);
+    console.log("savePath", savePath);
 
     const zipfile = path.join(
       "/home/node/app",
@@ -57,5 +76,15 @@ router.post("/", function(req, res) {
     res.send("File uploaded\n");
   });
 });
+
+function generateDirName() {
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const charactersLength = characters.length;
+  let result = "";
+  for (let i = 0; i < 6; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
 
 module.exports = router;
