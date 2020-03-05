@@ -8,100 +8,115 @@ const StreamZip = require("node-stream-zip");
 
 const config = require("../local.config.json");
 
-const homePath = "/nfs/groups/beamlines/dram";
+const homePath = config.dram_directory;
 
 router.post("/", function(req, res) {
-  //   console.log("req", req);
   const data = req.body;
 
   if (!config.jwtSecret) {
-    return res.status(500).send("No JWT secret has been set for zip-service\n");
+    const message = "No JWT secret has been set for zip-service\n";
+    console.log("WARNING", message);
+    return res.status(500).send(message);
   }
 
   if (!req.files || Object.keys(req.files).length === 0) {
-    return res.status(400).send("No files were uploaded\n");
+    const message = "No files were uploaded\n";
+    console.log("INFO", message);
+    return res.status(400).send(message);
   }
 
   if (!data["jwt"]) {
-    return res.status(400).send("JSON web token not provided\n");
+    const message = "JSON web token not provided\n";
+    console.log("INFO", message);
+    return res.status(400).send(message);
   }
 
-  const jwtValue = data["jwt"];
+  try {
+    jwt.verify(data["jwt"], config.jwtSecret);
+  } catch (err) {
+    console.error("ERROR", err);
+    return res.status(400).send("Invalid JSON web token\n");
+  }
 
-  jwt.verify(jwtValue, config.jwtSecret, (err, decoded) => {
-    if (err) {
-      return res.status(403).send("Invalid JSON web token\n");
+  let saveDir;
+  if (data["dir"]) {
+    if (data["dir"].indexOf("..") > -1 || data["dir"].indexOf("/") > -1) {
+      const message =
+        "Directory names containing '..' or '/' are not allowed\n";
+      console.log("WARNING", message);
+      return res.status(400).send(message);
     }
-
-    console.log("decoded jwt", decoded);
-
-    let saveDir;
-    if (data["dir"]) {
-      if (data["dir"].indexOf("..") > -1 || data["dir"].indexOf("/") > -1) {
-        return res
-          .status(403)
-          .send(`Directory names containing '..' or '/' are not allowed`);
-      }
-      saveDir = data["dir"];
-    } else {
+    saveDir = data["dir"];
+  } else {
+    do {
       saveDir = generateDirName();
       const homeDir = fs.readdirSync(homePath);
       if (!homeDir.includes(saveDir)) {
         fs.mkdirSync(path.join(homePath, saveDir));
-      }
-    }
-
-    console.log("saveDir", saveDir);
-
-    const savePath = path.join(homePath, saveDir);
-    console.log("savePath", savePath);
-
-    const zipfile = path.join(
-      "/home/node/app",
-      req.files["zipfile"].tempFilePath
-    );
-    console.log("zipfilePath", zipfile);
-
-    const zip = new StreamZip({
-      file: zipfile,
-      storeEntries: true
-    });
-
-    zip.on("error", err => {
-      return res.status(500).send("Unable to read zip file\n");
-    });
-
-    let entries;
-
-    zip.on("ready", () => {
-      const saveDir = fs.readdirSync(savePath);
-      entries = Object.keys(zip.entries());
-      console.log("entries", entries);
-      const duplicates = entries.filter(entry => saveDir.includes(entry));
-      console.log("duplicates", duplicates);
-      if (duplicates.length > 0) {
-        zip.close();
-        return res
-          .status(500)
-          .send(
-            `The file(s) ${duplicates} already exists in the chosen directory. Please choose another directory or rename the conflicting file(s).`
-          );
+        break;
       } else {
-        zip.extract(null, savePath, (err, count) => {
-          if (err) {
-            return res.status(500).send("Unable to extraxt files\n");
-          }
-          console.log(`Extracted ${count} files`);
-          zip.close();
-
-          return res.status(200).send({
-            message: "Upload successful",
-            files: entries,
-            location: savePath
-          });
-        });
+        continue;
       }
-    });
+    } while (true);
+  }
+
+  const savePath = path.join(homePath, saveDir);
+  const zipfile = path.join(
+    "/home/node/app",
+    req.files["zipfile"].tempFilePath
+  );
+
+  const zip = new StreamZip({
+    file: zipfile,
+    storeEntries: true
+  });
+
+  zip.on("error", err => {
+    console.error("ERROR", err);
+    return res.status(500).send("Unable to read zip file\n");
+  });
+
+  zip.on("extract", (entry, file) => {
+    console.log("INFO", `Extracted ${entry.name} to ${file}`);
+  });
+
+  let entries;
+
+  zip.on("ready", () => {
+    entries = Object.values(zip.entries());
+    const dirContent = fs.readdirSync(savePath);
+    const duplicates = entries
+      .map(entry => entry.name)
+      .filter(fileName => dirContent.includes(fileName));
+
+    if (duplicates.length > 0) {
+      zip.close();
+
+      const message =
+        `The file(s) ${duplicates} already exists in directory ${saveDir}. ` +
+        "Please choose another directory or rename the conflicting file(s).\n";
+      console.log("WARNING", message);
+      return res.status(500).send(message);
+    } else {
+      zip.extract(null, savePath, (err, count) => {
+        if (err) {
+          console.error("ERROR", err);
+          return res.status(500).send("Unable to extraxt files\n");
+        }
+
+        console.log(
+          "INFO",
+          `Extracted ${count} file(s) from ${req.files["zipfile"].name} to ${savePath}`
+        );
+        zip.close();
+
+        return res.status(200).send({
+          message: "Upload successful",
+          files: entries.map(({ name, size }) => ({ name, size })),
+          sourceFolder: savePath
+        });
+      });
+    }
   });
 });
 
