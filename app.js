@@ -5,6 +5,8 @@ const logger = require('morgan');
 const zipRouter = require('./routes/zip');
 const downloadRouter = require('./routes/download');
 const testRouter = require('./routes/test');
+const uploadRouter = require('./routes/upload');
+const fileUpload = require('express-fileupload');
 const session =  require('express-session');
 const fs = require('fs');
 const rimraf = require('rimraf');
@@ -19,11 +21,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({ secret: 'fj9832mnsaf3j9adsa', resave: false, saveUninitialized: true, }));
+app.use(fileUpload({useTempFiles: true, tempFileDir: config.path_to_zipped_files, debug: true}));
 
 //For a test UI performing polling and showing the progress bar
 app.use('/test', testRouter);
 app.use('/zip', zipRouter);
 app.use('/download', downloadRouter);
+app.use('/upload', uploadRouter);
 
 // error handler
 app.use(function(err, req, res, next) {

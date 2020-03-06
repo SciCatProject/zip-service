@@ -13,11 +13,13 @@
     "debug": "~2.6.9",
     "ejs": "^2.6.1",
     "express": "~4.16.0",
+    "express-fileupload": "^1.1.6",
     "express-session": "^1.15.6",
     "http-errors": "~1.6.2",
     "jade": "~1.11.0",
     "jsonwebtoken": "^8.4.0",
     "morgan": "~1.9.0",
+    "node-stream-zip": "^1.9.1",
     "progressbar.js": "^1.0.1",
     "rimraf": "^2.6.2",
     "sessions": "0.0.2-7"

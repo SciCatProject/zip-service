@@ -1,5 +1,6 @@
 {
    "path_to_zipped_files": "./files",
+   "dram_directory": "/nfs/groups/beamlines/dram",
    "jwtExpiresIn": "1h",
    "jwtSecret": "insertsecrethere",
    "institution": "ess",
