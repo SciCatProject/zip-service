@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "dependencies": {
     "archiver": "^3.0.0",
@@ -22,6 +24,8 @@
     "node-stream-zip": "^1.11.2",
     "progressbar.js": "^1.0.1",
     "rimraf": "^2.6.2",
-    "sessions": "0.0.2-7"
-  }
+    "sessions": "0.0.2-7",
+    "snyk": "^1.386.0"
+  },
+  "snyk": true
 }
