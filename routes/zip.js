@@ -91,9 +91,13 @@ const zipFiles = (path, files, zipFileName) => {
 }
 
 const zipSingleFile = (path, file, archive, zipFileName)  => {
-	db[zipFileName][ZIP_SIZE_AFTER_LAST_COMPLETED_FILE] = getFilesizeInBytes(config.path_to_zipped_files + "/" + zipFileName);
-	db[zipFileName][SIZE_OF_CURRENT_FILE] = getFilesizeInBytes(path + "/" + file);
-	fs.existsSync(path + "/" + file) ? archive.file(path + "/" + file, { name: file }) : null;
+	try {
+		db[zipFileName][ZIP_SIZE_AFTER_LAST_COMPLETED_FILE] = getFilesizeInBytes(config.path_to_zipped_files + "/" + zipFileName);
+		db[zipFileName][SIZE_OF_CURRENT_FILE] = getFilesizeInBytes(path + "/" + file);
+		fs.existsSync(path + "/" + file) ? archive.file(path + "/" + file, { name: file }) : null;
+	} catch (err) {
+		console.log(err);
+	}
 }
 
 //Polled periodically from the zipping view. Returns current progress or resulting file name if the zipping is done
