@@ -1,13 +1,8 @@
 version: "3"
-
-
 services:
   node:
     build: .
     restart: always
-    environment:
-      - NODE_ENV=production 
-      - PORT=3012
     ports:
       - "3012:3012"
     volumes:

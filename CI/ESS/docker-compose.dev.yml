@@ -5,9 +5,6 @@ services:
       context: .
       dockerfile: CI/ESS/Dockerfile.dev
     restart: always
-    environment:
-      - NODE_ENV=production 
-      - PORT=3012
     ports:
       - "3012:3012"
     volumes:

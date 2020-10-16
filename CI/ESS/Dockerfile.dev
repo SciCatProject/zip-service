@@ -1,9 +1,23 @@
 FROM node:10.16.1-alpine
 
-RUN npm config set registry http://registry.npmjs.org/
-RUN npm config set strict-ssl false
+RUN apk update && apk upgrade
+
+ENV NODE_ENV="production"
+ENV PORT=3012
+EXPOSE 3012
+
 WORKDIR /files
 WORKDIR /home/node/app
-COPY . .
+COPY package*.json /home/node/app/
+COPY .snyk /home/node/app/
+
+RUN chown -R node:node /files && chown -R node:node /home/node/app
+USER node
+
+RUN npm config set registry http://registry.npmjs.org/
+RUN npm config set strict-ssl false
 RUN npm ci --no-cache
+
+COPY . .
+
 CMD ["npm", "start"]
