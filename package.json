@@ -24,7 +24,7 @@
     "progressbar.js": "^1.1.0",
     "rimraf": "^2.7.1",
     "sessions": "0.0.2",
-    "snyk": "^1.410.4"
+    "snyk": "^1.413.2"
   },
   "snyk": true
 }
