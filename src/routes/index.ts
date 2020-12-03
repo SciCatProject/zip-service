@@ -1,10 +1,10 @@
-const express = require('express');
-const router = express.Router();
+import express from "express";
+export const router = express.Router();
 
 router.get('/', function(req, res, next) {
     let jwt = "";
     let base = "";
-    let file0 = "";
+    let file0 = "";  
     let file1 = "";
     let file2 = "";
     try {
@@ -16,7 +16,5 @@ router.get('/', function(req, res, next) {
         file2 = config.test_files[2];
 
        }catch (e) {}//defaulting to empty strings
-    res.render('test', {jwt, base, file0, file1, file2} );
+    res.render('index', {jwt, base, file0, file1, file2} );
 });
-
-module.exports = router;

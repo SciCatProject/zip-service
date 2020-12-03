@@ -12,30 +12,44 @@ Zip requests are sent as POST to `/zip`, which redirect to a download progress p
 ```json
 data: {
   "jwt": "token",
-  "base": "/path/to/files",
+  "directory": "/path/to/files",
   "files": ["file1","file2","file3"]
 }
 ```
 /zip shows a page with a progress bar, resulting in a downloadable zip-file.
 
 # local.config.json
-Required in the root directory. Example file:
+Required in the root directory. 
+| property key          | Data type   | Description |
+| --------------------- | ----------- | ----------- |
+| zipDir                | string      | directory where generated zip files are stored. Note that zip-files are deleted periodically |
+| zipRetentionMillis    | number      | The number of milliseconds zip files are stored before they're deleted |
+| sessionSecret         | string      | Used to sign session ids to detect client side tampering |
+| facility              | string      | Different facilities have different ways of authorizing file access. This property is used to determine which mechanism to use |
+| dramDirectory         | string      | Upload directory? |
+| testData              | Object      | Optional. Default input values at the index route |
+| testData.jwt          | string      | Optional. Default jwt |
+| testData.directory    | string      | Optional. Default directory |
+| testData.files        | string[]    | Optional. Default files. |
 
+
+Example data
 ```json
-{  
-   "path_to_zipped_files": "/files",
-   "jwtExpiresIn": "1h",
-   "jwtSecret": "849djHEUFjkkj35437¤#&",
-   "institution": "maxiv", 
-   "zip_file_retention_millis": 3600000,
-   "test_jwt":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvbmFzIiwiZ3JvdXBzIjpbInRlc3QxIiwidGVzdDIiXX0.aaQtE8-Up6eR2h4Q5ZrWJBzeWIVg-uSmQfuuBbk4zXg", 
-   "test_base":"/home/jonros/testdata/",
-   "test_files":[  
-      "file_1.h5", 
-      "file_2.h5", 
-      "[file_3.h5" 
+{
+  "zipDir": "/tmpZip",
+  "zipRetentionMillis": 3600000,
+  "jwtSecret": "secret123",
+  "sessionSecret": "fj9832mnsaf3j9adsa",
+  "facility": "maxiv",
+  "dramDirectory": "uploads/",
+  "testData": {
+    "jwt": "<jwtToken>",
+    "directory": "<testFileDirectory>",
+    "files": [
+      "<testFileName1>",
+      "<testFileName2>",
+      "<testFileName3>",
     ]
- }
+  }
+}
  ```
-# Dockerization (MAXIV)
-`offline-0:/gpfs/lunarc0/visitors` and `offline-0:/gpfs/lunarc0/staff` are mounted  under `/data `in the docker container, so their corresponding `base` values would  be `"data/visitors"` and `"data/staff"`, respectively.
