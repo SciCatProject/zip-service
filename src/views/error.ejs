@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <link rel="stylesheet" type="text/css" href="css/error.css">
-</head>
-<body>
-  <div class="error">
-    <h3>Error</h3>
-    <%= msg %>
-  </div>
-</body>
+  <head>
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="error">
+        <h3>Error (<%= statusCode %>)</h3>
+        <%= error %>
+      </div>
+    </div>
+  </body>
 </html>

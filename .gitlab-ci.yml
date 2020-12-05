@@ -4,7 +4,7 @@ before_script:
 build_image:
   stage: build
   script:
-    - docker build ./CD/MAXIV -t docker.maxiv.lu.se/zip-service
+    - docker build . -t docker.maxiv.lu.se/zip-service
     - docker push docker.maxiv.lu.se/zip-service
   only:
     - typescript

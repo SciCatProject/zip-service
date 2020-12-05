@@ -1,22 +1,30 @@
 export {};
-declare global {
-  export namespace Express {
-    interface Request {
-      access?: Global.Access;
-    }
+declare module "express-session" {
+  interface SessionData {
+    zipData: Global.ZipData;
   }
+}
+declare global {
   export namespace Global {
     interface Access {
       username: string;
+    }
+    interface ZipData {
+      directory: string;
+      currentFileIndex: number;
+      files:{fileName: string, size: number, progress: number}[]
+      zipSizeOnLastCompletedEntry: number;
+      zipFileName: string;
+      ready: boolean;
     }
     interface JWT {
       groups: string[];
       [key: string]: any; //arbitrary data
     }
     interface AuthRequest {
-      jwt: JWT,
+      jwt: JWT;
       endpoint: string;
-      httpMethod: string,
+      httpMethod: string;
       directory: string;
       fileNames: string[];
     }

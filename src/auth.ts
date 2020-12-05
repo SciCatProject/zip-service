@@ -3,7 +3,11 @@ import config from "./local.config.json";
 import jwtLib from "jsonwebtoken";
 import * as fs from "fs";
 
-export const hasFileAccess = (req: express.Request): Global.AuthResponse => {
+export const hasFileAccess = (
+  req: express.Request,
+  directory: string,
+  fileNames: string[]
+): Global.AuthResponse => {
   const { jwtSecret, facility } = config;
   if (!jwtSecret) {
     return {
@@ -17,7 +21,7 @@ export const hasFileAccess = (req: express.Request): Global.AuthResponse => {
   let jwtDecoded: Global.JWT;
   try {
     jwtDecoded = jwtLib.verify(
-      req.cookies.jwt || req.body.jwt || req.query.jwt,
+      req.body.jwt || req.cookies.jwt || req.query.jwt,
       jwtSecret
     ) as Global.JWT;
   } catch (e) {
@@ -33,16 +37,15 @@ export const hasFileAccess = (req: express.Request): Global.AuthResponse => {
     jwt: jwtDecoded,
     endpoint: req.originalUrl,
     httpMethod: req.method,
-    directory: req.method === "GET" ? req.params.directory : req.body.directory,
-    fileNames:
-      req.method === "GET" ? [req.params.fileName] : req.body?.fileNames,
+    directory,
+    fileNames,
   };
 
   if (!authRequest.directory) {
     return {
       hasAccess: false,
       statusCode: 400,
-      error: "'Directory' was not specified",
+      error: "'directory' was not specified",
       directory: undefined,
       fileNames: [],
     };
@@ -51,10 +54,7 @@ export const hasFileAccess = (req: express.Request): Global.AuthResponse => {
     return {
       hasAccess: false,
       statusCode: 400,
-      error:
-        authRequest.httpMethod === "GET"
-          ? "'fileName' was not specified"
-          : "'fileNames' was not specified",
+      error: "'fileNames' was not specified",
       directory: undefined,
       fileNames: [],
     };

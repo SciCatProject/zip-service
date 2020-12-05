@@ -1,31 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
-        <link rel="stylesheet" type="text/css" href="css/index.css">
-        <title>zip-service</title>
-    </head>
-    <body>
-        <form action="zip" method="POST">
-            <div>
-                <span>JWT</span><input type="text" name="jwt" value='<%= jwt %>'/>
-            </div>
-            <div>
-                <span>Base</span><input type="text" name="base" value='<%= base %>' />
-            </div>
-            <div>
-                <span>File 1</span><input type="text" name="files[0]" value='<%= file0 %>'/>
-            </div>
-            <div>
-                <span>File 2</span><input type="text" name="files[1]" value='<%= file1 %>'/>
-            </div>
-            <div>
-                <span>File 3</span><input type="text" name="files[2]" value='<%= file2 %>'/>
-            </div>
-            <div>
-                <input type="submit" value="Download"></button>
-            </div>
-        </form>
-    </body>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,shrink-to-fit=no"
+    />
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <title>zip-service</title>
+  </head>
+  <body>
+    <div class="container">
+      <form action="zip" method="POST">
+        <div class="flex-container">
+          <span>JWT</span
+          ><input
+            placeholder="Not needed if jwt cookie is present"
+            type="text"
+            name="jwt"
+            value="<%= jwt %>"
+            style="width: 25em"
+          />
+        </div>
+        <div class="flex-container">
+          <div>Directory</div>
+          <input type="text" name="directory" style="width: 25em" value="<%= directory %>" />
+        </div>
+        <div class="flex-container">
+          <div>File 1</div>
+          <input type="text" name="files[0]" style="width: 25em" value="<%= file0 %>" />
+        </div>
+        <div class="flex-container">
+          <div>File 2</div>
+          <input type="text" name="files[1]" style="width: 25em" value="<%= file1 %>" />
+        </div>
+        <div class="flex-container">
+          <div>File 3</div>
+          <input type="text" name="files[2]" style="width: 25em" value="<%= file2 %>" />
+        </div>
+        <div class="flex-container">
+          <input type="submit" value="Download" />
+        </div>
+      </form>
+    </div>
+  </body>
 </html>

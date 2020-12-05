@@ -26,6 +26,7 @@ app.use(
     secret: config.sessionSecret || "WARNING_UNSAFE",
     resave: false,
     saveUninitialized: true,
+    name: "zip-service.sid"
   })
 );
 app.use(
