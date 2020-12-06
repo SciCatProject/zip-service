@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "prebuild": "tslint -c tslint.json -p tsconfig.json --fix",
-    "build": "rm -rf ./dist/ && tsc  && cp ./src/views ./dist/",
+    "build": "rm -rf ./dist/ && tsc  && cp -r ./src/views ./dist/",
     "win-build": "rmdir /Q /S dist & tsc & Xcopy src\\views dist\\views /E /I ",
     "prestart": "npm run build",
     "start": "node ./dist/index.js",
