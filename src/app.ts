@@ -49,19 +49,18 @@ const deleteZipFiles = () => {
       files.forEach(function (file, index) {
         fs.stat(
           path.join(config.zipDir, file),
-          function (err, stat) {
-            var endTime, now;
-            if (err) {
-              return console.error(err);
+          function (err2, stat) {
+            if (err2) {
+              return console.error(err2);
             }
-            now = new Date().getTime();
-            endTime = new Date(stat.ctime).getTime() + 60 * 60 * 1000;
+            const now = new Date().getTime();
+            const endTime = new Date(stat.ctime).getTime() + 60 * 60 * 1000;
             if (now > endTime) {
               return rimraf(
                 path.join(config.zipDir, file),
-                function (err) {
-                  if (err) {
-                    return console.error(err);
+                function (err3) {
+                  if (err3) {
+                    return console.error(err3);
                   }
                   console.log("successfully deleted");
                 }

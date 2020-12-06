@@ -1,8 +1,8 @@
 import app from "./app";
 import cors from "cors";
-import http from "http"; 
+import http from "http";
 
-var port = normalizePort(process.env.PORT || "3011"); 
+var port = normalizePort(process.env.PORT || "3011");
 app.set("port", port);
 app.use(cors());
 
@@ -11,14 +11,12 @@ server.listen(port);
 server.on("error", onError);
 server.on("listening", onListening);
 console.log("zip-service running on port " + port);
-function normalizePort(val:any) {
-  var port = parseInt(val, 10); 
+function normalizePort(val: any) {
+  var port = parseInt(val, 10);
   if (isNaN(port)) {
-    // named pipe
     return val;
   }
   if (port >= 0) {
-    // port number
     return port;
   }
   return false;
@@ -28,7 +26,7 @@ function normalizePort(val:any) {
  * Event listener for HTTP server "error" event.
  */
 
-function onError(error:any) {
+function onError(error: any) {
   if (error.syscall !== "listen") {
     throw error;
   }
