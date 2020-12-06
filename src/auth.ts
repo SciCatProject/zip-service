@@ -68,7 +68,7 @@ export const hasFileAccess = (
       fileNames: [],
     };
   }
-  var groups = jwtDecoded.groups;
+  const groups = jwtDecoded.groups;
   if (!groups) {
     return {
       hasAccess: false,
@@ -78,7 +78,7 @@ export const hasFileAccess = (
       fileNames: [],
     };
   }
-  //Evaluate access rights based on institution specific logic
+  // Evaluate access rights based on institution specific logic
   switch (facility) {
     case "maxiv": {
       return authMAXIV(authRequest);

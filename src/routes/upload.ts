@@ -24,28 +24,28 @@ router.post("/", function (req, res) {
     return res.status(400).send(message);
   }
 
-  if (!data["jwt"]) {
+  if (!data.jwt) {
     const message = "JSON web token not provided\n";
     console.log("INFO", message);
     return res.status(400).send(message);
   }
 
   try {
-    jwt.verify(data["jwt"], config.jwtSecret);
+    jwt.verify(data.jwt, config.jwtSecret);
   } catch (err) {
     console.error("ERROR", err);
     return res.status(400).send("Invalid JSON web token\n");
   }
 
   let saveDir: string;
-  if (data["dir"]) {
-    if (data["dir"].indexOf("..") > -1 || data["dir"].indexOf("/") > -1) {
+  if (data.dir) {
+    if (data.dir.indexOf("..") > -1 || data.dir.indexOf("/") > -1) {
       const message =
         "Directory names containing '..' or '/' are not allowed\n";
       console.log("WARNING", message);
       return res.status(400).send(message);
     }
-    saveDir = data["dir"];
+    saveDir = data.dir;
   } else {
     do {
       saveDir = generateDirName();
@@ -62,7 +62,7 @@ router.post("/", function (req, res) {
   const savePath = path.join(homePath, saveDir);
   const zipfile = path.join(
     "/home/node/app",
-    req.files["zipfile"].tempFilePath
+    req.files.zipfile.tempFilePath
   );
 
   const zip = new StreamZip({
@@ -103,7 +103,7 @@ router.post("/", function (req, res) {
 
         console.log(
           "INFO",
-          `Extracted the file(s) from ${req.files["zipfile"].name} to ${savePath}`
+          `Extracted the file(s) from ${req.files.zipfile.name} to ${savePath}`
         );
         zip.close();
 

@@ -12,7 +12,7 @@ import { router as downloadRouter } from "./routes/download";
 import { router as indexRouter } from "./routes/index";
 import { router as uploadRouter } from "./routes/upload";
 
-var app = express();
+const app = express();
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 app.use(logger("dev"));
@@ -42,7 +42,7 @@ app.use("/zip", zipRouter);
 app.use("/download", downloadRouter);
 app.use("/upload", uploadRouter);
 
-//Delete all zip files in config.path_to_zipped_files older than one hour.
+// Delete all zip files in config.path_to_zipped_files older than one hour.
 const deleteZipFiles = () => {
   try {
     fs.readdir(config.zipDir, function (err, files) {

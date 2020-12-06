@@ -19,7 +19,7 @@ router.post("/", (req, res) => {
   if (!hasAccess) {
     return res.render("error", { statusCode, error });
   }
-  //TODO if sessiondata - ask if the user wants to delete it before starting a new zip
+  // TODO if sessiondata - ask if the user wants to delete it before starting a new zip
   try {
     const zipFileName =
       require("crypto").createHash("md5").update(directory).digest("hex") +
@@ -71,7 +71,7 @@ router.post("/", (req, res) => {
   }
 });
 
-//Polled periodically from the zipping view. Returns current progress or resulting file name if the zipping is done
+// Polled periodically from the zipping view. Returns current progress or resulting file name if the zipping is done
 router.get("/", (req, res) => {
   const {
     currentFileIndex,
