@@ -13,14 +13,14 @@ router.get('/:file', function(req, res) {
     }
   try{
     const file = fs.readFileSync(config.zipDir + "/" + req.params.file, "binary");
+    res.setHeader('Content-Length', file.length);
+    res.setHeader('content-disposition', 'attachment; filename=' + req.params.file);
+    res.write(file, 'binary');
+    res.end();
   }catch(error){
     res.statusCode = 404;
     res.send("File not found");
     return;
   }
-  res.setHeader('Content-Length', file.length);
-  res.setHeader('content-disposition', 'attachment; filename=' + req.params.file);
-  res.write(file, 'binary');
-  res.end();
 });
 
