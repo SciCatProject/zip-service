@@ -48,8 +48,8 @@ input[type="submit"]:hover {
   background-color: #fff;
 }
 .error {
-  color: #630005;
-  background-color: #ffd2d2;
+  min-height: 10em;
+  text-align: center;
 }
 .zipping {
   text-align: center;

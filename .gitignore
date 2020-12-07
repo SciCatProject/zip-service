@@ -12,9 +12,6 @@
 #but commit the files dir itself
 !/files/.gitkeep
 
-# production
-/dist
-
 # misc
 .DS_Store
 .env.local
