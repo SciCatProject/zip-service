@@ -19,7 +19,6 @@ router.post("/", (req, res) => {
   if (!hasAccess) {
     return res.render("error", { statusCode, error });
   }
-  // TODO if sessiondata - ask if the user wants to delete it before starting a new zip
   try {
     const zipFileName =
       require("crypto").createHash("md5").update(directory).digest("hex") +
@@ -81,7 +80,6 @@ router.get("/", (req, res) => {
     zipSizeOnLastCompletedEntry,
   } = req.session.zipData;
   const zipSize = getFileSizeInBytes(config.zipDir + "/" + zipFileName);
-  console.log({currentFileIndex, files, ready, zipSizeOnLastCompletedEntry, zipSize} )
   if (ready || currentFileIndex === files.length) {
     return res.send(req.session.zipData);
   }

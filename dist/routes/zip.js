@@ -38,7 +38,6 @@ exports.router.post("/", (req, res) => {
     if (!hasAccess) {
         return res.render("error", { statusCode, error });
     }
-    // TODO if sessiondata - ask if the user wants to delete it before starting a new zip
     try {
         const zipFileName = require("crypto").createHash("md5").update(directory).digest("hex") +
             "_" +
@@ -90,7 +89,6 @@ exports.router.post("/", (req, res) => {
 exports.router.get("/", (req, res) => {
     const { currentFileIndex, ready, files, zipFileName, zipSizeOnLastCompletedEntry, } = req.session.zipData;
     const zipSize = getFileSizeInBytes(local_config_json_1.default.zipDir + "/" + zipFileName);
-    console.log({ currentFileIndex, files, ready, zipSizeOnLastCompletedEntry, zipSize });
     if (ready || currentFileIndex === files.length) {
         return res.send(req.session.zipData);
     }

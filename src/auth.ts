@@ -40,7 +40,6 @@ export const hasFileAccess = (
     directory,
     fileNames,
   };
-
   if (!authRequest.directory) {
     return {
       hasAccess: false,

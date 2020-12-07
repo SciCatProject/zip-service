@@ -57,6 +57,7 @@ const hasFileAccess = (req, directory, fileNames) => {
         directory,
         fileNames,
     };
+    console.log(authRequest);
     if (!authRequest.directory) {
         return {
             hasAccess: false,
