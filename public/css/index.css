@@ -17,6 +17,7 @@ a {
   color: #769eda;
 }
 code {
+  font-style: normal;
   background: #eee;
   font-family: consolas, monospace;
 }
