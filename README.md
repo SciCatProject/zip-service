@@ -1,4 +1,4 @@
-[![Known Vulnerabilities](https://snyk.io/test/github/SciCatProject/zip-service/master/badge.svg?targetFile=package.json)](https://snyk.io/test/github/SciCatProject/zip-service/master?targetFile=package.json)
+[![Known Vulnerabilities](https://snyk.io/test/github/SciCatProject/zip-service/develop/badge.svg?targetFile=package.json)](https://snyk.io/test/github/SciCatProject/zip-service/develop?targetFile=package.json)
 
 # Description
 A service for zipping and downloading a group of files with a common directory on the same machine as the service is running. Authorization is based on the properties username:string groups:string[] in the JWT.
