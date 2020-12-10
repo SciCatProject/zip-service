@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="/css/index.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdn.rawgit.com/kimmobrunfeldt/progressbar.js/0.5.6/dist/progressbar.js"></script>
+    <script>
+       var currentFileIndex = 0;
+      $( document ).ready(function() {
+        var circle = new ProgressBar.Circle('#progressbar', {
+          strokeWidth: 20,
+          easing: 'easeInOut',
+          duration: 1000,
+          color: '#3261ad',
+          trailColor: '#eee',
+          trailWidth: 20,
+          svgStyle: null
+        });
+        var zipFileName = '<%= zipFileName %>';
+        var total = <%= total %>;
+        iId = setInterval(() => {poll(circle, total, zipFileName)}, 1000);
+        $( "#status" ).html(`<div>0/${total}</div>`);
+      });
+
+      function poll(circle, total, zipFileName){
+        $.get( "/zip").done(function( data ){
+          const progress = `<div style="font-weight: bold">Processing ${data.currentFileIndex + 1}/${total} files</div>`
+          if (data.ready){
+            clearInterval(iId);
+            circle.animate(1, {duration: 1000});
+            $( "#status" ).html(`<div><a target="_blank" href="download/${zipFileName}">Download</a></div>`);
+
+            $( "#title" ).html("Done!");
+
+          }else{
+            if (currentFileIndex !== data.currentFileIndex){
+              currentFileIndex = data.currentFileIndex;
+              circle.set(parseFloat(data.files[data.currentFileIndex].progress));
+            }else{
+              circle.animate(parseFloat(data.files[data.currentFileIndex].progress, {duration: 1000}));
+            }
+            $( "#status" ).html(`${progress}<div style="font-style: italic">${data.files[currentFileIndex].fileName}</div>`);
+          }
+
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="zipping">
+        <div id="title">Please wait, the files are being zipped...</div>
+        <div style="width: 100px; margin: 20px auto" id="progressbar"></div>
+        <div id="status"></div>
+      </div>
+    </div>
+  </body>
+</html>

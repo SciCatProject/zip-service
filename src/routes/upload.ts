@@ -1,16 +1,15 @@
-const express = require("express");
-const router = express.Router();
+import express from "express";
+export const router = express.Router();
 
-const fs = require("fs");
-const jwt = require("jsonwebtoken");
-const path = require("path");
-const StreamZip = require("node-stream-zip");
+import * as fs from "fs";
+import jwt from "jsonwebtoken";
+import path from "path";
+import StreamZip from "node-stream-zip";
+import config from "../local.config.json";
 
-const config = require("../local.config.json");
+const homePath = config.dramDirectory;
 
-const homePath = config.dram_directory;
-
-router.post("/", function(req, res) {
+router.post("/", function (req, res) {
   const data = req.body;
 
   if (!config.jwtSecret) {
@@ -25,28 +24,28 @@ router.post("/", function(req, res) {
     return res.status(400).send(message);
   }
 
-  if (!data["jwt"]) {
+  if (!data.jwt) {
     const message = "JSON web token not provided\n";
     console.log("INFO", message);
     return res.status(400).send(message);
   }
 
   try {
-    jwt.verify(data["jwt"], config.jwtSecret);
+    jwt.verify(data.jwt, config.jwtSecret);
   } catch (err) {
     console.error("ERROR", err);
     return res.status(400).send("Invalid JSON web token\n");
   }
 
-  let saveDir;
-  if (data["dir"]) {
-    if (data["dir"].indexOf("..") > -1 || data["dir"].indexOf("/") > -1) {
+  let saveDir: string;
+  if (data.dir) {
+    if (data.dir.indexOf("..") > -1 || data.dir.indexOf("/") > -1) {
       const message =
         "Directory names containing '..' or '/' are not allowed\n";
       console.log("WARNING", message);
       return res.status(400).send(message);
     }
-    saveDir = data["dir"];
+    saveDir = data.dir;
   } else {
     do {
       saveDir = generateDirName();
@@ -63,15 +62,15 @@ router.post("/", function(req, res) {
   const savePath = path.join(homePath, saveDir);
   const zipfile = path.join(
     "/home/node/app",
-    req.files["zipfile"].tempFilePath
+    req.files.zipfile.tempFilePath
   );
 
   const zip = new StreamZip({
     file: zipfile,
-    storeEntries: true
+    storeEntries: true,
   });
 
-  zip.on("error", err => {
+  zip.on("error", (err) => {
     console.error("ERROR", err);
     return res.status(500).send("Unable to read zip file\n");
   });
@@ -80,14 +79,12 @@ router.post("/", function(req, res) {
     console.log("INFO", `Extracted ${entry.name} to ${file}`);
   });
 
-  let entries;
-
   zip.on("ready", () => {
-    entries = Object.values(zip.entries());
+    const entries = zip.entries();
     const dirContent = fs.readdirSync(savePath);
     const duplicates = entries
-      .map(entry => entry.name)
-      .filter(fileName => dirContent.includes(fileName));
+      .map((entry) => entry.name)
+      .filter((fileName) => dirContent.includes(fileName));
 
     if (duplicates.length > 0) {
       zip.close();
@@ -98,7 +95,7 @@ router.post("/", function(req, res) {
       console.log("WARNING", message);
       return res.status(500).send(message);
     } else {
-      zip.extract(null, savePath, (err, count) => {
+      zip.extract(null, savePath, (err: any) => {
         if (err) {
           console.error("ERROR", err);
           return res.status(500).send("Unable to extraxt files\n");
@@ -106,14 +103,14 @@ router.post("/", function(req, res) {
 
         console.log(
           "INFO",
-          `Extracted ${count} file(s) from ${req.files["zipfile"].name} to ${savePath}`
+          `Extracted the file(s) from ${req.files.zipfile.name} to ${savePath}`
         );
         zip.close();
 
         return res.status(200).send({
           message: "Upload successful",
           files: entries.map(({ name, size }) => ({ name, size })),
-          sourceFolder: savePath
+          sourceFolder: savePath,
         });
       });
     }
@@ -129,5 +126,3 @@ function generateDirName() {
   }
   return result;
 }
-
-module.exports = router;

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,shrink-to-fit=no"
+    />
+    <link rel="stylesheet" type="text/css" href="/css/index.css" />
+    <title>zip-service</title>
+  </head>
+  <body>
+    <div class="container">
+      <h2 style="padding-left: 1em">Zip-service</h2>
+      <div class="flex-container">
+        <div
+          class="flex-panel-item"
+          style="font-style: italic; font-size: 0.8em;"
+        >
+          <p>
+            UI for testing zip-service. While implementation details of file
+            authorization may vary between facilities, a valid jwt (JSON Web
+            Token) is required for all of them. This can be specified either as
+            a cookie (all requests), a url parameter (GET) or in the body
+            (POST).
+          </p>
+          <p>
+            The default value of <code>directory</code> corresponds to the root
+            of the scientific data directory tree. The specified files must all be directly under this directory.
+          </p>
+          <p>
+            By submitting the form on the right, a http <code>POST</code> is made to <code>/zip</code>, with the specified jwt, directory and file array as its body. The jwt can be omitted if already present as a cookie. If not, one has to be generated using the same secret as the zip-service, and a JSON payload containing the keys necessary for authorization.
+          </p>
+        </div>
+        <form action="zip" method="POST" class="flex-panel-item">
+          <div class="table-flex-container">
+            <div>JWT</div
+            ><input
+              placeholder="Not needed if jwt cookie is present"
+              type="text"
+              name="jwt"
+              class="input"
+            />
+          </div>
+          <div class="table-flex-container">
+            <div>Directory</div>
+            <input
+              type="text"
+              name="directory"
+              class="input"
+              value="<%= directory %>"
+            />
+          </div>
+          <div class="table-flex-container">
+            <div>File 1</div>
+            <input
+              type="text"
+              name="files[0]"
+              class="input"
+              value="<%= file0 %>"
+            />
+          </div>
+          <div class="table-flex-container">
+            <div>File 2</div>
+            <input
+              type="text"
+              class="input"
+              name="files[1]"
+              value="<%= file1 %>"
+            />
+          </div>
+          <div class="table-flex-container">
+            <div>File 3</div>
+            <input
+              type="text"
+              name="files[2]"
+              class="input"
+              value="<%= file2 %>"
+            />
+          </div>
+          <div class="table-flex-container">
+            <input type="submit" value="Execute" />
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
