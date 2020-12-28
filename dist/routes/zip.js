@@ -80,14 +80,25 @@ exports.router.post("/", (req, res) => {
         archive.finalize();
     }
     catch (error) {
-        res.statusCode = 500;
-        res.send("The files could not be zipped");
-        return;
+        req.session.zipData.error = true;
+        req.session.save();
     }
 });
 // Polled periodically from the zipping view. Returns current progress or resulting file name if the zipping is done
 exports.router.get("/", (req, res) => {
-    const { currentFileIndex, ready, files, zipFileName, zipSizeOnLastCompletedEntry, } = req.session.zipData;
+    if (!req.session.zipData) {
+        return res.render("error", {
+            statusCode: 400,
+            error: "No session data was found. Make sure you got here by following a valid download link.",
+        });
+    }
+    const { currentFileIndex, ready, files, zipFileName, zipSizeOnLastCompletedEntry, error, } = req.session.zipData;
+    if (error) {
+        return res.render("error", {
+            errorCode: 500,
+            error: "Something went wrong while preparing the files. Please try again.",
+        });
+    }
     const zipSize = getFileSizeInBytes(local_config_json_1.default.zipDir + "/" + zipFileName);
     if (ready || currentFileIndex === files.length) {
         return res.send(req.session.zipData);
@@ -115,6 +126,7 @@ const initSession = (directory, fileNames, zipFileName) => {
         zipFileName,
         zipSizeOnLastCompletedEntry: 0,
         ready: false,
+        error: false,
     };
 };
 //# sourceMappingURL=zip.js.map

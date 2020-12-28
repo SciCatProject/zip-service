@@ -16,6 +16,7 @@ declare global {
       zipSizeOnLastCompletedEntry: number;
       zipFileName: string;
       ready: boolean;
+      error: boolean;
     }
     interface JWT {
       groups: string[];

@@ -29,6 +29,7 @@ router.get("/:file", function (req, res) {
       zipFileName: "",
       zipSizeOnLastCompletedEntry: 0,
       ready: false,
+      error: false,
     };
     const file = fs.readFileSync(
       config.zipDir + "/" + req.params.file,
