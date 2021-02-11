@@ -16,4 +16,4 @@ RUN npm ci --no-cache
 
 COPY . .
 
-CMD ["npm", "start"]
+CMD ["node", "dist/index.js"]
