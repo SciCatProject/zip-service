@@ -3,6 +3,9 @@
 # dependencies
 /node_modules
 
+# build dir
+/dist
+
 # testing
 /testdata
 

@@ -24,6 +24,12 @@ router.post("/", function (req, res) {
     return res.status(400).send(message);
   }
 
+  if (Array.isArray(req.files.zipfile)) {
+    const message = "Upload only supports a single zip file\n";
+    console.log("ERROR", message);
+    return res.status(400).send(message);
+  }
+
   if (!data.jwt) {
     const message = "JSON web token not provided\n";
     console.log("INFO", message);
@@ -60,10 +66,8 @@ router.post("/", function (req, res) {
   }
 
   const savePath = path.join(homePath, saveDir);
-  const zipfile = path.join(
-    "/home/node/app",
-    req.files.zipfile.tempFilePath
-  );
+  const zipfile = path.join("/home/node/app", req.files.zipfile.tempFilePath);
+  const zipfileName = req.files.zipfile.name;
 
   const zip = new StreamZip({
     file: zipfile,
@@ -103,7 +107,7 @@ router.post("/", function (req, res) {
 
         console.log(
           "INFO",
-          `Extracted the file(s) from ${req.files.zipfile.name} to ${savePath}`
+          `Extracted the file(s) from ${zipfileName} to ${savePath}`
         );
         zip.close();
 
