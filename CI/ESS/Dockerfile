@@ -19,5 +19,6 @@ RUN npm config set strict-ssl false
 RUN npm ci --no-cache
 
 COPY . .
+RUN npm run build
 
 CMD ["node", "dist/index.js"]
