@@ -4,7 +4,7 @@
 /node_modules
 
 # build dir
-/dist
+dist
 
 # testing
 /testdata
