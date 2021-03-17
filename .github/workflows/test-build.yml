@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   test_build:
     name: Test Build
-    runs_on: ubuntu_latest
+    runs-on: ubuntu_latest
 
     strategy:
       matrix:
