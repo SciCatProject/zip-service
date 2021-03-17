@@ -1,0 +1,24 @@
+name: Test build
+
+on: [push, pull_request]
+
+jobs:
+  test_build:
+    name: Test Build
+    runs_on: ubuntu_latest
+
+    strategy:
+      matrix:
+        node-version: [12.x, 14.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+        run: |
+          npm ci
+          npm run build
