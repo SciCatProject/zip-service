@@ -1,3 +1,4 @@
+[![Build Status](https://github.com/SciCatProject/zip-service/actions/workflows/test-build.yml/badge.svg?branch=develop)](https://github.com/SciCatProject/zip-service/actions)
 [![Known Vulnerabilities](https://snyk.io/test/github/SciCatProject/zip-service/develop/badge.svg?targetFile=package.json)](https://snyk.io/test/github/SciCatProject/zip-service/develop?targetFile=package.json)
 
 # Description
