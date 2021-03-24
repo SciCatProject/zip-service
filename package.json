@@ -42,5 +42,8 @@
     "sessions": "0.0.2",
     "snyk": "^1.464.0"
   },
-  "snyk": true
+  "snyk": true,
+  "devDependencies": {
+    "eslint": "^7.22.0"
+  }
 }
