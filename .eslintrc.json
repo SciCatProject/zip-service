@@ -11,7 +11,8 @@
   },
   "plugins": ["@typescript-eslint"],
   "rules": {
-   "camelcase": "error",
+    "camelcase": "error",
+    "eol-last": ["error", "always"],
     "indent": ["error", 2],
     "linebreak-style": ["error", "unix"],
     "no-constant-condition": ["error", { "checkLoops": false }],
