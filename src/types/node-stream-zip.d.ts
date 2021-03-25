@@ -1,5 +1,5 @@
-declare module 'node-stream-zip' {
-    import {Stream} from 'stream';
+declare module "node-stream-zip" {
+    import { Stream } from "stream";
 
     interface StreamZipOptions {
         /**
@@ -35,15 +35,15 @@ declare module 'node-stream-zip' {
     }
 
     class StreamZip {
-        constructor(config: StreamZipOptions);
+      constructor(config: StreamZipOptions);
 
-        on(event: 'error', handler: (error: any) => void): void
-        on(event: 'entry', handler: (entry: ZipEntry) => void): void
-        on(event: 'extract', handler: (entry: ZipEntry, file:string) => void): void
-        on(event: 'ready', handler: () => void): void
+      on(event: "error", handler: (error: any) => void): void
+      on(event: "entry", handler: (entry: ZipEntry) => void): void
+      on(event: "extract", handler: (entry: ZipEntry, file:string) => void): void
+      on(event: "ready", handler: () => void): void
 
-        entry(entry:string) :ZipEntry
-        entries() : ZipEntry[]
+      entry(entry:string) :ZipEntry
+      entries() : ZipEntry[]
 
         entriesCount: number
     
