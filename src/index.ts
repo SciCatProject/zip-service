@@ -15,7 +15,7 @@ server.on("listening", onListening);
  * Event listener for HTTP server "error" event.
  */
 
-function onError(error: any) {
+function onError(error: Record<string, unknown>) {
   if (error.syscall !== "listen") {
     throw error;
   }

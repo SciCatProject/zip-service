@@ -2,7 +2,7 @@ import express from "express";
 import config from "../local.config.json";
 export const router = express.Router();
 
-router.get("/", function (req, res, next) {
+router.get("/", function (req, res) {
   res.render("index", {
     jwt: config.testData.jwt || "",
     directory: config.testData.directory || "",

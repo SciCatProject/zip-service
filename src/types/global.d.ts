@@ -19,7 +19,7 @@ declare global {
     }
     interface JWT {
       groups: string[];
-      [key: string]: any; //arbitrary data
+      [key: string]: unknown; //arbitrary data
     }
     interface AuthRequest {
       jwt: JWT;

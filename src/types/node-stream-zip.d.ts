@@ -37,7 +37,7 @@ declare module "node-stream-zip" {
     class StreamZip {
       constructor(config: StreamZipOptions);
 
-      on(event: "error", handler: (error: any) => void): void
+      on(event: "error", handler: (error: Error) => void): void
       on(event: "entry", handler: (entry: ZipEntry) => void): void
       on(event: "extract", handler: (entry: ZipEntry, file:string) => void): void
       on(event: "ready", handler: () => void): void
@@ -47,11 +47,11 @@ declare module "node-stream-zip" {
 
         entriesCount: number
     
-        stream(entry:string, callback: (err: any | null, stream?: Stream) =>void):void
+        stream(entry:string, callback: (err: Error | null, stream?: Stream) =>void):void
         entryDataSync(entry:string):Buffer
-        openEntry(entry: string, callback: (err: any | null, entry?: ZipEntry) => void, sync: boolean):void
-        extract(entry: string, outPath: string, callback: (err?: any) => void): void
-        close(callback?: (err?: any) => void): void
+        openEntry(entry: string, callback: (err: Error | null, entry?: ZipEntry) => void, sync: boolean):void
+        extract(entry: string, outPath: string, callback: (err?: Error) => void): void
+        close(callback?: (err?: Error) => void): void
     }
     export = StreamZip;
 }
