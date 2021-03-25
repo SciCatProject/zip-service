@@ -79,16 +79,16 @@ export const hasFileAccess = (
   }
   // Evaluate access rights based on institution specific logic
   switch (facility) {
-    case "maxiv": {
-      return authMAXIV(authRequest);
-    }
-    default:
-      return {
-        hasAccess: true,
-        statusCode: 200,
-        directory: authRequest.directory,
-        fileNames: authRequest.fileNames,
-      };
+  case "maxiv": {
+    return authMAXIV(authRequest);
+  }
+  default:
+    return {
+      hasAccess: true,
+      statusCode: 200,
+      directory: authRequest.directory,
+      fileNames: authRequest.fileNames,
+    };
   }
 };
 

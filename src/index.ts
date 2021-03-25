@@ -15,7 +15,7 @@ server.on("listening", onListening);
  * Event listener for HTTP server "error" event.
  */
 
-function onError(error: any) {
+function onError(error: Record<string, unknown>) {
   if (error.syscall !== "listen") {
     throw error;
   }
@@ -23,16 +23,16 @@ function onError(error: any) {
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
-    case "EACCES":
-      console.error(bind + " requires elevated privileges");
-      process.exit(1);
-      break;
-    case "EADDRINUSE":
-      console.error(bind + " is already in use");
-      process.exit(1);
-      break;
-    default:
-      throw error;
+  case "EACCES":
+    console.error(bind + " requires elevated privileges");
+    process.exit(1);
+    break;
+  case "EADDRINUSE":
+    console.error(bind + " is already in use");
+    process.exit(1);
+    break;
+  default:
+    throw error;
   }
 }
 function onListening() {

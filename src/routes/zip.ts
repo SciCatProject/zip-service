@@ -1,5 +1,6 @@
 import express from "express";
 import * as fs from "fs";
+import * as crypto from "crypto";
 import config from "../local.config.json";
 import archiver from "archiver";
 import { hasFileAccess } from "../auth";
@@ -21,7 +22,7 @@ router.post("/", (req, res) => {
   }
   try {
     const zipFileName =
-      require("crypto").createHash("md5").update(directory).digest("hex") +
+      crypto.createHash("md5").update(directory).digest("hex") +
       "_" +
       new Date().getTime() +
       ".zip";

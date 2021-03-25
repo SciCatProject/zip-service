@@ -99,7 +99,7 @@ router.post("/", function (req, res) {
       console.log("WARNING", message);
       return res.status(500).send(message);
     } else {
-      zip.extract(null, savePath, (err: any) => {
+      zip.extract(null, savePath, (err: Error) => {
         if (err) {
           console.error("ERROR", err);
           return res.status(500).send("Unable to extraxt files\n");

@@ -46,7 +46,7 @@ app.use("/upload", uploadRouter);
 const deleteZipFiles = () => {
   try {
     fs.readdir(config.zipDir, function (err, files) {
-      files.forEach(function (file, index) {
+      files.forEach(function (file) {
         fs.stat(
           path.join(config.zipDir, file),
           function (err2, stat) {
