@@ -19,7 +19,7 @@ function onError(error: Record<string, unknown>) {
   if (error.syscall !== "listen") {
     throw error;
   }
-  const bind = typeof port === "string" ? "Pipe " + port : "Port " + port;
+  const bind = "Port " + port;
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
