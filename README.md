@@ -1,4 +1,5 @@
 [![Build Status](https://github.com/SciCatProject/zip-service/actions/workflows/test-build.yml/badge.svg?branch=develop)](https://github.com/SciCatProject/zip-service/actions)
+[![DeepScan grade](https://deepscan.io/api/teams/8394/projects/16917/branches/371288/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=8394&pid=16917&bid=371288)
 [![Known Vulnerabilities](https://snyk.io/test/github/SciCatProject/zip-service/develop/badge.svg?targetFile=package.json)](https://snyk.io/test/github/SciCatProject/zip-service/develop?targetFile=package.json)
 
 # Description
