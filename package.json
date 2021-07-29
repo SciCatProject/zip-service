@@ -14,7 +14,7 @@
     "prepare": "npm run snyk-protect"
   },
   "dependencies": {
-    "@types/archiver": "^5.1.0",
+    "@types/archiver": "^5.3.0",
     "@types/cookie-parser": "^1.4.2",
     "@types/cors": "^2.8.10",
     "@types/express-fileupload": "^1.1.6",
