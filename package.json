@@ -18,7 +18,7 @@
     "@types/cookie-parser": "^1.4.2",
     "@types/cors": "^2.8.11",
     "@types/express-fileupload": "^1.1.6",
-    "@types/express-session": "^1.17.3",
+    "@types/express-session": "^1.17.4",
     "@types/jsonwebtoken": "^8.5.4",
     "@types/morgan": "^1.9.3",
     "@types/rimraf": "^3.0.0",
