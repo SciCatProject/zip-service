@@ -14,15 +14,18 @@ router.post("/", function(req: express.Request, res: express.Response) {
     req.body.directory,
     req.body.files
   );
+  const readOpts = {highWaterMark: Math.pow(2, 20)};
+
   if (!hasAccess) {
     console.log(`error zipping file ${error}`);
     return res.render("error", { statusCode, error });
   }
 
   try{
+    // res.useChunkedEncodingByDefault = true;
+ 
     const archive = archiver("zip", {
-      gzip: true,
-      zlib: { level: 9 },
+      zlib: { level: 1 },
     });
     archive.on("error", function (err) {
       console.error("Error in archiver", err);
@@ -56,9 +59,10 @@ router.post("/", function(req: express.Request, res: express.Response) {
     });
 
     console.log(`zip file name ${zipFileName}`);
+
     fileNames.map((file) => {
       if (file.length == 0) return;
-      const read = makeReadStream(`${file}`);
+      const read = makeReadStream(`${req.body.directory}/${file}`);
       console.log(`appending ${file}`);
       archive.append(read, { name: file });
     });
@@ -70,7 +74,7 @@ router.post("/", function(req: express.Request, res: express.Response) {
   }
 
   function makeReadStream(filepath: string) {
-    const read = fs.createReadStream(filepath);
+    const read = fs.createReadStream(filepath, readOpts);
     read.on("open", function () {
       console.log(`Reading ${this.path}`);
     });
