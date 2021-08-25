@@ -17,7 +17,7 @@ hello:
 
 build_zip:
 	@echo "tagging to: " ${IMG_ZIP}    ${REGISTRY_ZIP}
-	@docker build -t ${IMG_ZIP} -f Dockerfile ../../
+	@docker build -t ${IMG_ZIP} -f ../../Dockerfile ../../
 	@docker tag ${IMG_ZIP} ${REGISTRY_ZIP}
  
 push_zip:
