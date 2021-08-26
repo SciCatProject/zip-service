@@ -62,7 +62,7 @@ router.post("/", function(req: express.Request, res: express.Response) {
 
     fileNames.map((file) => {
       if (file.length == 0) return;
-      const read = makeReadStream(`${file}`);
+      const read = makeReadStream(`${req.body.directory}/${file}`);
       console.log(`appending ${file}`);
       archive.append(read, { name: file });
     });
