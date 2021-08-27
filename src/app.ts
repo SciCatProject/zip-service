@@ -7,6 +7,7 @@ import express from "express";
 import path from "path";
 import cookieParser from "cookie-parser";
 import logger from "morgan";
+import { router as zipInPlaceRouter } from "./routes/zip_in_place";
 import { router as zipRouter } from "./routes/zip";
 import { router as downloadRouter } from "./routes/download";
 import { router as indexRouter } from "./routes/index";
@@ -39,6 +40,7 @@ app.use(
 
 app.use("/", indexRouter);
 app.use("/zip", zipRouter);
+app.use("/zip_in_place", zipInPlaceRouter);
 app.use("/download", downloadRouter);
 app.use("/upload", uploadRouter);
 
