@@ -27,6 +27,5 @@ yarn-debug.log*
 yarn-error.log*
 
 .vscode/launch.json
-local.config.json
 
 tst
