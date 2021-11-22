@@ -16,6 +16,7 @@ RUN npm config set proxy  $http_proxy
 RUN npm config set https-proxy  $http_proxy
 RUN npm config set registry http://registry.npmjs.org/
 RUN npm config set strict-ssl false
+RUN npm install eslint
 RUN npm ci --no-cache
 
 COPY . .
