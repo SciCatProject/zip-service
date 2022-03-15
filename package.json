@@ -39,7 +39,7 @@
     "progressbar.js": "^1.1.0",
     "rimraf": "^2.7.1",
     "sessions": "0.0.2",
-    "snyk": "^1.855.0",
+    "snyk": "^1.856.0",
     "typescript": "^4.5.5"
   },
   "snyk": true,
