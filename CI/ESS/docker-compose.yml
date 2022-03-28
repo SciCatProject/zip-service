@@ -8,4 +8,5 @@ services:
     volumes:
       - /nfs/groups/beamlines/:/nfs/groups/beamlines
       - /users/detector/experiments/:/users/detector/experiments
+      - /mnt/groupdata/guide_optimizations:/mnt/groupdata/guide_optimizations
       - /tmp/zip-service:/home/node/app/files #location of the zipped files
