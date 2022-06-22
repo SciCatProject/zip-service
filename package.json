@@ -14,7 +14,7 @@
     "prepare": "npm run snyk-protect"
   },
   "dependencies": {
-    "@snyk/protect": "^1.942.0",
+    "@snyk/protect": "^1.945.0",
     "@types/archiver": "^5.3.1",
     "@types/cookie-parser": "^1.4.3",
     "@types/cors": "^2.8.12",
