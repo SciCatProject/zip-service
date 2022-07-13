@@ -58,15 +58,7 @@ export const hasFileAccess = (
       fileNames: [],
     };
   }
-  const splitDirectory = directory.split("/");
-  const splitDirectorsQuoted = splitDirectory.map((dir) => {
-    if (dir.indexOf(" ") !== -1) {
-      return "\"" + dir + "\"";
-    } else {
-      return dir;
-    }
-  });
-  authRequest.directory = splitDirectorsQuoted.join("/");
+  authRequest.directory = "\"" + authRequest.directory + "\"";
   if (!fs.existsSync(authRequest.directory)) {
     return {
       hasAccess: false,
