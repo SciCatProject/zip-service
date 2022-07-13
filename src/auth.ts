@@ -58,6 +58,7 @@ export const hasFileAccess = (
       fileNames: [],
     };
   }
+  authRequest.directory = directory.replace(/(\s+)/g, "\\$1");
   if (!fs.existsSync(authRequest.directory)) {
     return {
       hasAccess: false,
