@@ -1,5 +1,5 @@
 import express from "express";
-import config from "./local.config.json";
+import { config } from "./common/config";
 import jwtLib from "jsonwebtoken";
 import * as fs from "fs";
 

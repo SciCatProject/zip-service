@@ -2,7 +2,7 @@ import fileUpload from "express-fileupload";
 import session from "express-session";
 import fs from "fs";
 import rimraf from "rimraf";
-import config from "./local.config.json";
+import { config } from "./common/config";
 import express from "express";
 import path from "path";
 import cookieParser from "cookie-parser";
