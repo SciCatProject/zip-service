@@ -5,7 +5,7 @@ import * as fs from "fs";
 import jwt from "jsonwebtoken";
 import path from "path";
 import StreamZip from "node-stream-zip";
-import config from "../local.config.json";
+import { config } from "../common/config";
 
 const homePath = config.dramDirectory;
 

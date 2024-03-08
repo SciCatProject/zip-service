@@ -1,7 +1,7 @@
 import express from "express";
 import * as fs from "fs";
 import * as crypto from "crypto";
-import config from "../local.config.json";
+import { config } from "../common/config";
 import archiver from "archiver";
 import { hasFileAccess } from "../auth";
 
