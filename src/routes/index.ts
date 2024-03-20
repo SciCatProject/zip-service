@@ -1,5 +1,5 @@
 import express from "express";
-import config from "../local.config.json";
+import { config } from "../common/config";
 export const router = express.Router();
 
 router.get("/", function (req, res) {

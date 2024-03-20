@@ -1,5 +1,5 @@
 import express from "express";
-import config from "./local.config.json";
+import { config } from "./common/config";
 import jwtLib from "jsonwebtoken";
 import * as fs from "fs";
 
@@ -19,9 +19,12 @@ export const hasFileAccess = (
     };
   }
   let jwtDecoded: Global.JWT;
+  const jwtToken = req.body.jwt || req.cookies.jwt || req.query.jwt;
+  console.log("jwt token  : ", jwtToken);
+  console.log("jwt secret : ", jwtSecret);
   try {
     jwtDecoded = jwtLib.verify(
-      req.body.jwt || req.cookies.jwt || req.query.jwt,
+      jwtToken,
       jwtSecret
     ) as Global.JWT;
   } catch (e) {
@@ -40,6 +43,7 @@ export const hasFileAccess = (
     directory,
     fileNames,
   };
+  console.log("Auth request : ", authRequest);
   if (!authRequest.directory) {
     return {
       hasAccess: false,

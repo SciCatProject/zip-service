@@ -1,0 +1,12 @@
+{
+  "zipDir": "./files",
+  "jwtSecret": "bc0e46ca856a253af65cf7e92ca97064",
+  "sessionSecret": "ec4581190273ea0024bd2ca66df60c52",
+  "facility": "test",
+  "zipRetentionMillis": 3600000,
+  "testData": {
+    "jwt": "a932530450ec8f7b965e6b3dfc3180d1",
+    "directory": "./test",
+    "files": ["test_file_1.txt", "test_file_2.txt", "test_file_3.txt"]
+  }
+}
