@@ -12,11 +12,17 @@ export const router = express.Router();
  * Request zipping of files. Require directory:string and files:string[] in the request body
  */
 router.post("/", (req, res) => {
+  console.log("Request body : ", req.body);
   const { hasAccess, statusCode, error, directory, fileNames } = hasFileAccess(
     req,
     req.body.directory,
     req.body.files
   );
+  console.log("Has access  : ", hasAccess);
+  console.log("Status code : ", statusCode);
+  console.log("Error       : ", error);
+  console.log("Directory   : ", directory);
+  console.log("File names  : ", fileNames);
   if (!hasAccess) {
     return res.render("error", { statusCode, error });
   }
@@ -26,6 +32,7 @@ router.post("/", (req, res) => {
       "_" +
       new Date().getTime() +
       ".zip";
+    console.log("Zip file name : ", zipFileName);
     req.session.zipData = initSession(directory, fileNames, zipFileName);
     res.render("zipping", { total: fileNames.length, zipFileName });
     if (!fs.existsSync(config.zipDir)) {
