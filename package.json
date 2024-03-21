@@ -25,6 +25,7 @@
     "@types/morgan": "^1.9.3",
     "@types/node": "^20.11.25",
     "@types/rimraf": "^3.0.1",
+    "@user-office-software/duo-logger": "^2.2.1",
     "archiver": "^5.3.1",
     "body-parser": "^1.20.0",
     "cookie-parser": "~1.4.6",
