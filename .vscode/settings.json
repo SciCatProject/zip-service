@@ -1,3 +1,4 @@
 {
-    "peacock.color": "#2f0710"
+  "peacock.color": "#2f0710",
+  "prettier.singleQuote": false
 }

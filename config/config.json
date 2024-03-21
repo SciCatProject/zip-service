@@ -1,16 +1,16 @@
 {
   "zipDir": "./files",
-  "jwtSecret": "insertsecrethere",
+  "jwtSecret": "fhjekrsgvhuirs",
   "sessionSecret": "fj9832mnsaf3j9adsa",
   "facility": "ess",
   "zipRetentionMillis": 3600000,
   "dramDirectory": "/nfs/groups/beamlines/dram",
   "testData": {
     "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJncm91cHMiOlsiZXNzIiwibG9raSIsIm9kaW4iXSwiaWF0IjoxNTY3NDI3NzA5LCJleHAiOjE1Njc0MzEzMDl9.ENcuTBS67shghefL3wRCHxoyobwZGaFQIUvSZ0cywcE",
-    "directory": "/nfs/groups/beamlines/v20/14CD3N/",
-    "files": ["nicos_00000490.hdf"]
+    "directory": "./test/",
+    "files": ["test_file_1.txt"]
   },
-  "graylogEnabled": true,
+  "graylogEnabled": false,
   "graylogServer": "it-graylog.esss.lu.se",
   "graylogPort": 12201,
   "environment": "development"

@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import path from "path";
 import StreamZip from "node-stream-zip";
 import { config } from "../common/config";
+import { logger } from "@user-office-software/duo-logger";
 
 const homePath = config.dramDirectory;
 
@@ -14,32 +15,36 @@ router.post("/", function (req, res) {
 
   if (!config.jwtSecret) {
     const message = "No JWT secret has been set for zip-service\n";
-    console.log("WARNING", message);
+    logger.logWarn(message, {});
+
     return res.status(500).send(message);
   }
 
   if (!req.files || Object.keys(req.files).length === 0) {
     const message = "No files were uploaded\n";
-    console.log("INFO", message);
+    logger.logInfo(message, {});
+
     return res.status(400).send(message);
   }
 
   if (Array.isArray(req.files.zipfile)) {
     const message = "Upload only supports a single zip file\n";
-    console.log("ERROR", message);
+    logger.logError(message, {});
+
     return res.status(400).send(message);
   }
 
   if (!data.jwt) {
     const message = "JSON web token not provided\n";
-    console.log("INFO", message);
+    logger.logInfo(message, {});
+
     return res.status(400).send(message);
   }
 
   try {
     jwt.verify(data.jwt, config.jwtSecret);
   } catch (err) {
-    console.error("ERROR", err);
+    logger.logError("An error occured while verifying token ", err);
     return res.status(400).send("Invalid JSON web token\n");
   }
 
@@ -48,7 +53,7 @@ router.post("/", function (req, res) {
     if (data.dir.indexOf("..") > -1 || data.dir.indexOf("/") > -1) {
       const message =
         "Directory names containing '..' or '/' are not allowed\n";
-      console.log("WARNING", message);
+      logger.logWarn(message, {});
       return res.status(400).send(message);
     }
     saveDir = data.dir;
@@ -75,12 +80,12 @@ router.post("/", function (req, res) {
   });
 
   zip.on("error", (err) => {
-    console.error("ERROR", err);
+    logger.logError("An error occured", { err });
     return res.status(500).send("Unable to read zip file\n");
   });
 
   zip.on("extract", (entry, file) => {
-    console.log("INFO", `Extracted ${entry.name} to ${file}`);
+    logger.logWarn(`Extracted ${entry.name} to ${file}`, {});
   });
 
   zip.on("ready", () => {
@@ -96,18 +101,18 @@ router.post("/", function (req, res) {
       const message =
         `The file(s) ${duplicates} already exists in directory ${saveDir}. ` +
         "Please choose another directory or rename the conflicting file(s).\n";
-      console.log("WARNING", message);
+      logger.logWarn(message, {});
       return res.status(500).send(message);
     } else {
       zip.extract(null, savePath, (err: Error) => {
         if (err) {
-          console.error("ERROR", err);
+          logger.logError("An error occured", { err });
           return res.status(500).send("Unable to extraxt files\n");
         }
 
-        console.log(
-          "INFO",
-          `Extracted the file(s) from ${zipfileName} to ${savePath}`
+        logger.logInfo(
+          `Extracted the file(s) from ${zipfileName} to ${savePath}`,
+          {}
         );
         zip.close();
 
