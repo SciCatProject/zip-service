@@ -13,6 +13,11 @@ export const router = express.Router();
  * Request zipping of files. Require directory:string and files:string[] in the request body
  */
 router.post("/", (req, res) => {
+  logger.logInfo("Request has been submitted", {
+    directory: req.body.directory,
+    fileNames: req.body.files,
+  });
+
   const { hasAccess, statusCode, error, directory, fileNames } = hasFileAccess(
     req,
     req.body.directory,
@@ -20,7 +25,8 @@ router.post("/", (req, res) => {
   );
 
   if (!hasAccess) {
-    logger.logError("Error       : ", { statusCode, error });
+    logger.logError("Error: ", { statusCode, error });
+
     return res.render("error", { statusCode, error });
   }
   try {

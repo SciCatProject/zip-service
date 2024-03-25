@@ -12,6 +12,7 @@ import { router as downloadRouter } from "./routes/download";
 import { router as indexRouter } from "./routes/index";
 import { router as uploadRouter } from "./routes/upload";
 import { logger } from "@user-office-software/duo-logger";
+import { configureLogger } from "./common/configureLogger";
 
 const app = express();
 app.set("views", path.join(__dirname, "views"));
@@ -42,6 +43,13 @@ app.use("/zip", zipRouter);
 app.use("/zip_in_place", zipInPlaceRouter);
 app.use("/download", downloadRouter);
 app.use("/upload", uploadRouter);
+
+configureLogger(
+  config.graylogEnabled,
+  config.graylogServer,
+  config.graylogPort,
+  config.environment
+);
 
 // Delete all zip files in config.path_to_zipped_files older than one hour.
 const deleteZipFiles = () => {

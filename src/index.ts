@@ -12,12 +12,18 @@ server.listen(port);
 server.on("error", onError);
 server.on("listening", onListening);
 
+process.on("uncaughtException", (error) => {
+  logger.logException("Unhandled NODE exception", error);
+});
+
 /**
  * Event listener for HTTP server "error" event.
  */
 
 function onError(error: Record<string, unknown>) {
   if (error.syscall !== "listen") {
+    logger.logError("Error received ", error);
+    
     throw error;
   }
   const bind = "Port " + port;
