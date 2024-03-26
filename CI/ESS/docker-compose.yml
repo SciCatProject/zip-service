@@ -1,12 +1,15 @@
 version: "3"
 services:
   node:
-    build: .
-    restart: always
+    image: docker pull ghcr.io/scicatproject/zip-service:alpha.1
+    restart: no
     ports:
       - "3012:3012"
     volumes:
-      - /nfs/groups/beamlines/:/nfs/groups/beamlines
-      - /users/detector/experiments/:/users/detector/experiments
-      - /mnt/groupdata/guide_optimizations/:/mnt/groupdata/guide_optimizations
-      - /tmp/zip-service:/home/node/app/files #location of the zipped files
+      - /ess/sims/config/zip-service/config.json:/home/node/app/config.json
+      - /tmp/zip-service:/home/node/app/files
+      - /users/detector/experiments/:/users/detector/experiments:ro
+      - /nfs/groups/beamlines/:/nfs/groups/beamlines:ro
+      - /mnt/groupdata/guide_optimizations/:/mnt/groupdata/guide_optimizations:ro
+      - /ess/data:/ess/data:ro
+
