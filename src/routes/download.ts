@@ -1,6 +1,6 @@
 import express from "express";
 import * as fs from "fs";
-import * as config from "../local.config.json";
+import { config } from "../common/config";
 export const router = express.Router();
 
 router.get("/:file", function (req, res) {
