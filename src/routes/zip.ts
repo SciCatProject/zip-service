@@ -4,6 +4,7 @@ import * as crypto from "crypto";
 import { config } from "../common/config";
 import archiver from "archiver";
 import { hasFileAccess } from "../auth";
+import { logger } from "@user-office-software/duo-logger";
 
 export const router = express.Router();
 
@@ -12,18 +13,20 @@ export const router = express.Router();
  * Request zipping of files. Require directory:string and files:string[] in the request body
  */
 router.post("/", (req, res) => {
-  console.log("Request body : ", req.body);
+  logger.logInfo("Request has been submitted", {
+    directory: req.body.directory,
+    fileNames: req.body.files,
+  });
+
   const { hasAccess, statusCode, error, directory, fileNames } = hasFileAccess(
     req,
     req.body.directory,
     req.body.files
   );
-  console.log("Has access  : ", hasAccess);
-  console.log("Status code : ", statusCode);
-  console.log("Error       : ", error);
-  console.log("Directory   : ", directory);
-  console.log("File names  : ", fileNames);
+
   if (!hasAccess) {
+    logger.logError("Error: ", { statusCode, error });
+
     return res.render("error", { statusCode, error });
   }
   try {
@@ -32,7 +35,7 @@ router.post("/", (req, res) => {
       "_" +
       new Date().getTime() +
       ".zip";
-    console.log("Zip file name : ", zipFileName);
+    logger.logInfo("Zip file name : " + zipFileName, {});
     req.session.zipData = initSession(directory, fileNames, zipFileName);
     res.render("zipping", { total: fileNames.length, zipFileName });
     if (!fs.existsSync(config.zipDir)) {
@@ -44,7 +47,7 @@ router.post("/", (req, res) => {
       zlib: { level: 9 },
     });
     archive.on("error", function (err) {
-      console.error("Error in archiver", err);
+      logger.logError("Error in archiver", { err });
     });
     fileStream.on("close", function () {
       req.session.zipData.ready = true;
@@ -68,7 +71,7 @@ router.post("/", (req, res) => {
         }
       });
     } catch (error) {
-      console.log("Failed zipping " + directory);
+      logger.logError("Failed zipping " + directory, {});
     }
     archive.finalize();
   } catch (error) {

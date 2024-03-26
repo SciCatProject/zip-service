@@ -2,6 +2,7 @@ import express from "express";
 import { config } from "./common/config";
 import jwtLib from "jsonwebtoken";
 import * as fs from "fs";
+import { logger } from "@user-office-software/duo-logger";
 
 export const hasFileAccess = (
   req: express.Request,
@@ -20,13 +21,8 @@ export const hasFileAccess = (
   }
   let jwtDecoded: Global.JWT;
   const jwtToken = req.body.jwt || req.cookies.jwt || req.query.jwt;
-  console.log("jwt token  : ", jwtToken);
-  console.log("jwt secret : ", jwtSecret);
   try {
-    jwtDecoded = jwtLib.verify(
-      jwtToken,
-      jwtSecret
-    ) as Global.JWT;
+    jwtDecoded = jwtLib.verify(jwtToken, jwtSecret) as Global.JWT;
   } catch (e) {
     return {
       hasAccess: false,
@@ -36,6 +32,9 @@ export const hasFileAccess = (
       fileNames: [],
     };
   }
+
+  logger.logInfo("Request user: ", { user: jwtDecoded.username });
+
   const authRequest: Global.AuthRequest = {
     jwt: jwtDecoded,
     endpoint: req.originalUrl,
@@ -43,7 +42,6 @@ export const hasFileAccess = (
     directory,
     fileNames,
   };
-  console.log("Auth request : ", authRequest);
   if (!authRequest.directory) {
     return {
       hasAccess: false,
