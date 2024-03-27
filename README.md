@@ -8,7 +8,28 @@ A service for zipping and downloading a group of files with a common directory o
 # Install
 `docker-compose up` or `npm install && npm start`
 
+# Image creation
+This instruction are necessary to create the image locally and than push it to the github image repository.
+We hope to automate the image release in the near future.
+1. pull the latest code from github repository _develop_ branch
+2. create the image locally
+   `> docker build -f CI/ESS/Dockerfile --tag ghcr.io/scicatproject/zip-service:<release>`
+   where release is something like _alpha.__n___ with _n_ the next available number.
+   Please check in the image repository available [here](https://github.com/SciCatProject/zip-service/pkgs/container/zip-service) for the next available release.
+3. login in to github through docker
+   `> docker login ghcr.io`
+4. push the image
+   `> docker push .....`
+
+
+
 # Usage
+## main endpoint
+The main endpoint will present a default form that can be used to test the download.
+The files presented in the form are included in the image available on the repository, and they are available just for testing.
+This form is provided for testing and has to be screened and monitored for security purposes.
+
+
 ## zip with download
 Zip requests are sent as POST to `/zip`, which redirect to a download progress page. The post body should have the following format:
 
