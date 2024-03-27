@@ -16,11 +16,14 @@ We hope to automate the image release in the near future.
    `> docker build -f CI/ESS/Dockerfile --tag ghcr.io/scicatproject/zip-service:<release>`
    where release is something like _alpha.__n___ with _n_ the next available number.
    Please check in the image repository available [here](https://github.com/SciCatProject/zip-service/pkgs/container/zip-service) for the next available release.
+   At the time of this writing, the latest image is alpha:5., so the full command is:
+   `> docker build -f CI/ESS/Dockerfile --tag ghcr.io/scicatproject/zip-service:alpha.5` 
 3. login in to github through docker
    `> docker login ghcr.io`
 4. push the image
-   `> docker push .....`
-
+   `> docker push ghcr.io/scicatproject/zip-service:alpha.<release>`
+   To follow up our example, the full command will be:
+   `> docker push ghcr.io/scicatproject/zip-service:alpha.5`
 
 
 # Usage

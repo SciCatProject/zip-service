@@ -10,7 +10,7 @@ RUN apk update && apk upgrade
 
 WORKDIR /home/node/app
 COPY package*.json /home/node/app/
-COPY .snyk /home/node/app/
+#COPY .snyk /home/node/app/
 
 #RUN npm config set proxy  $http_proxy
 #RUN npm config set https-proxy  $http_proxy
