@@ -101,7 +101,6 @@ export const hasFileAccess = async (
         }
       }
     ).catch((e) => {
-      console.log("Broken API Call")
        
       return false
     });
