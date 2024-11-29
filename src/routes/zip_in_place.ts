@@ -9,11 +9,12 @@ import { logger } from "@user-office-software/duo-logger";
 export const router = express.Router();
 
 /* POST zip */
-router.post("/", function (req: express.Request, res: express.Response) {
-  const { hasAccess, statusCode, error, directory, fileNames } = hasFileAccess(
+router.post("/", async function (req: express.Request, res: express.Response) {
+  const { hasAccess, statusCode, error, directory, fileNames } = await hasFileAccess(
     req,
     req.body.directory,
-    req.body.files
+    req.body.files,
+    req.body.dataset
   );
   const readOpts = { highWaterMark: Math.pow(2, 20) };
 

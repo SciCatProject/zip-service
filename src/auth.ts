@@ -1,15 +1,21 @@
 import express from "express";
 import { config } from "./common/config";
-import jwtLib from "jsonwebtoken";
 import * as fs from "fs";
-import { logger } from "@user-office-software/duo-logger";
+import jwtLib from "jsonwebtoken";
 
-export const hasFileAccess = (
+import { logger } from "@user-office-software/duo-logger";
+import { scicatDataSetAPI } from "./common/scicatAPI"
+
+export const hasFileAccess = async (
   req: express.Request,
   directory: string,
-  fileNames: string[]
-): Global.AuthResponse => {
-  const { jwtSecret, facility } = config;
+  fileNames: string[],
+  dataset: string
+): Promise<Global.AuthResponse> => {
+
+  const { jwtSecret } = config;
+  const dataSetAPI = scicatDataSetAPI();
+
   if (!jwtSecret) {
     return {
       hasAccess: false,
@@ -41,7 +47,10 @@ export const hasFileAccess = (
     httpMethod: req.method,
     directory,
     fileNames,
+    dataset
   };
+
+  
   if (!authRequest.directory) {
     return {
       hasAccess: false,
@@ -79,32 +88,29 @@ export const hasFileAccess = (
       fileNames: [],
     };
   }
-  // Evaluate access rights based on institution specific logic
-  switch (facility) {
-  case "maxiv": {
-    return authMAXIV(authRequest);
-  }
-  default:
+
+
+
+  const valid = await dataSetAPI.datasetsControllerFindById({pid: authRequest.dataset}).then(
+    (value) => 
+      {
+        if(value.isPublished || value.accessGroups.some(item => new Set(authRequest.jwt.groups).has(item)) || authRequest.jwt.groups.indexOf(value.ownerGroup) > -1){
+          return true
+        }else{
+          false
+        }
+      }
+    ).catch((e) => {
+      console.log("Broken API Call")
+       
+      return false
+    });
+  
     return {
-      hasAccess: true,
-      statusCode: 200,
-      directory: authRequest.directory,
-      fileNames: authRequest.fileNames,
+      hasAccess: valid,
+      statusCode: valid ? 200 : 403,
+      error: valid ? "" : "You do not have access to this resource",
+      directory: valid ? authRequest.directory : undefined,
+      fileNames: valid ? authRequest.fileNames : [],
     };
-  }
-};
-
-const authMAXIV = (authRequest: Global.AuthRequest): Global.AuthResponse => {
-  const valid =
-    authRequest.jwt.groups.filter(
-      (group) => group.trim() && authRequest.directory.indexOf(group) > -1
-    ).length > 0;
-
-  return {
-    hasAccess: valid,
-    statusCode: valid ? 200 : 403,
-    error: valid ? "" : "You do not have access to this resource",
-    directory: valid ? authRequest.directory : undefined,
-    fileNames: valid ? authRequest.fileNames : [],
-  };
-};
+}

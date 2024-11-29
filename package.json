@@ -12,6 +12,7 @@
     "lint": "eslint --fix ."
   },
   "dependencies": {
+    "@scicatproject/scicat-ts-fetch-test": "^2.0.0",
     "@types/archiver": "^5.3.1",
     "@types/cookie-parser": "^1.4.3",
     "@types/cors": "^2.8.12",
@@ -27,6 +28,7 @@
     "cookie-parser": "~1.4.6",
     "cors": "^2.8.5",
     "debug": "~2.6.9",
+    "dotenv": "^16.4.5",
     "ejs": "^3.1.8",
     "express": "~4.19.2",
     "express-fileupload": "^1.4.0",

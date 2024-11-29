@@ -27,6 +27,7 @@ declare global {
       httpMethod: string;
       directory: string;
       fileNames: string[];
+      dataset: string;
     }
     interface AuthResponse {
       hasAccess: boolean;

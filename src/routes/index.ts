@@ -6,6 +6,7 @@ router.get("/", function (req, res) {
   res.render("index", {
     jwt: config.testData.jwt || "",
     directory: config.testData.directory || "",
+    dataset: "",
     file0: config.testData?.files[0] || "",
     file1: config.testData?.files[1] || "",
     file2: config.testData?.files[2] || "",
