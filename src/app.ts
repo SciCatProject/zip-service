@@ -13,7 +13,6 @@ import { router as indexRouter } from "./routes/index";
 import { router as uploadRouter } from "./routes/upload";
 import { logger } from "@user-office-software/duo-logger";
 import { configureLogger } from "./common/configureLogger";
-import 'dotenv/config'
 
 const app = express();
 app.set("views", path.join(__dirname, "views"));

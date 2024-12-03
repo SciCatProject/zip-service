@@ -13,5 +13,7 @@
   "graylogEnabled": false,
   "graylogServer": "it-graylog.esss.lu.se",
   "graylogPort": 12201,
-  "environment": "development"
+  "environment": "development",
+  "basePath": "", 
+  "accessToken": ""
 }
