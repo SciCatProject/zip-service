@@ -91,15 +91,12 @@ export const hasFileAccess = async (
 
 
 
-  const valid = await dataSetAPI.datasetsControllerFindById({pid: authRequest.dataset}).then(
-    (value) => 
-      {
-        if(value.isPublished ||  // Check if proposal is public
-          value.accessGroups.some(item => new Set(authRequest.jwt.groups).has(item)) ||  // Check if user has one or more of the access groups of dataset
-          authRequest.jwt.groups.indexOf(value.ownerGroup) > -1) //Check if user has the owner group
-          {
-          return true;
-        }
+const isPublic = value.isPublished; 
+const hasAccessGroup = value.accessGroups.some(item => new Set(authRequest.jwt.groups).has(item)); 
+const hasOwnerGroup = authRequest.jwt.groups.includes(value.ownerGroup);  
+if (isPublic || hasAccessGroup || hasOwnerGroup) {
+  return true;
+}
         
         return false;
         
