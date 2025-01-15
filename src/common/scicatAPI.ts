@@ -1,4 +1,4 @@
-import { Configuration, DatasetsApi } from "@scicatproject/scicat-ts-fetch-test";
+import { Configuration, DatasetsApi } from "@scicatproject/scicat-sdk-ts-fetch";
 import { config } from "./config";
 
 let datasetsApiInstance: DatasetsApi | null = null;
