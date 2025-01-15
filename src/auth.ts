@@ -5,6 +5,7 @@ import jwtLib from "jsonwebtoken";
 
 import { logger } from "@user-office-software/duo-logger";
 import { scicatDataSetAPI } from "./common/scicatAPI"
+import { OutputDatasetObsoleteDto } from "@scicatproject/scicat-sdk-ts-fetch/dist/models";
 
 export const hasFileAccess = async (
   req: express.Request,
@@ -89,17 +90,16 @@ export const hasFileAccess = async (
     };
   }
 
-
-
-const isPublic = value.isPublished; 
-const hasAccessGroup = value.accessGroups.some(item => new Set(authRequest.jwt.groups).has(item)); 
-const hasOwnerGroup = authRequest.jwt.groups.includes(value.ownerGroup);  
-if (isPublic || hasAccessGroup || hasOwnerGroup) {
-  return true;
-}
-        
+  const valid = await dataSetAPI.datasetsControllerFindById({pid: authRequest.dataset}).then(
+    (value: OutputDatasetObsoleteDto) => 
+      {
+        const isPublic = value.isPublished; 
+        const hasAccessGroup = value.accessGroups.some(item => new Set(authRequest.jwt.groups).has(item)); 
+        const hasOwnerGroup = authRequest.jwt.groups.includes(value.ownerGroup);  
+        if (isPublic || hasAccessGroup || hasOwnerGroup) {
+          return true;
+        }
         return false;
-        
       }
     ).catch((e) => {
        
