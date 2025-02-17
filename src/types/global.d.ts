@@ -12,10 +12,11 @@ declare global {
     interface ZipData {
       directory: string;
       currentFileIndex: number;
-      files:{fileName: string, size: number, progress: number}[]
+      files: { fileName: string; size: number; progress: number }[];
       zipSizeOnLastCompletedEntry: number;
       zipFileName: string;
       ready: boolean;
+      datasetId: string;
     }
     interface JWT {
       groups: string[];
