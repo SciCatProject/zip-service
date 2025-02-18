@@ -1,10 +1,11 @@
 import express from "express";
 import * as fs from "fs";
 import { config } from "../common/config";
+import { logger } from "@user-office-software/duo-logger/lib/logger";
 export const router = express.Router();
 
 router.get("/:file", function (req, res) {
-  if (!req.session.zipData){
+  if (!req.session.zipData) {
     return res.render("error", {
       statusCode: 403,
       error: "This download link is no longer valid",
@@ -22,6 +23,8 @@ router.get("/:file", function (req, res) {
     return res.send("Missing parameter 'file'");
   }
   try {
+    const oldZipData = req.session.zipData;
+
     req.session.zipData = {
       directory: "",
       currentFileIndex: 0,
@@ -29,16 +32,14 @@ router.get("/:file", function (req, res) {
       zipFileName: "",
       zipSizeOnLastCompletedEntry: 0,
       ready: false,
+      datasetId: "",
     };
-    const file = fs.readFileSync(
-      config.zipDir + "/" + req.params.file,
-      "binary"
-    );
+    const file = fs.readFileSync(config.zipDir + "/" + req.params.file, "binary");
+
+    logger.logInfo("Downloaded Zip File:", { ...oldZipData });
     res.setHeader("Content-Length", file.length);
-    res.setHeader(
-      "content-disposition",
-      "attachment; filename=" + req.params.file
-    );
+    res.setHeader("content-disposition", "attachment; filename=" + req.params.file);
+
     res.write(file, "binary");
     res.end();
   } catch (error) {

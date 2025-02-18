@@ -4,7 +4,7 @@ import * as fs from "fs";
 import jwtLib from "jsonwebtoken";
 
 import { logger } from "@user-office-software/duo-logger";
-import { scicatDataSetAPI } from "./common/scicatAPI"
+import { scicatDataSetAPI } from "./common/scicatAPI";
 import { OutputDatasetObsoleteDto } from "@scicatproject/scicat-sdk-ts-fetch/dist/models";
 
 export const hasFileAccess = async (
@@ -13,7 +13,6 @@ export const hasFileAccess = async (
   fileNames: string[],
   dataset: string
 ): Promise<Global.AuthResponse> => {
-
   const { jwtSecret } = config;
   const dataSetAPI = scicatDataSetAPI();
 
@@ -48,10 +47,9 @@ export const hasFileAccess = async (
     httpMethod: req.method,
     directory,
     fileNames,
-    dataset
+    dataset,
   };
 
-  
   if (!authRequest.directory) {
     return {
       hasAccess: false,
@@ -90,27 +88,28 @@ export const hasFileAccess = async (
     };
   }
 
-  const valid = await dataSetAPI.datasetsControllerFindById({pid: authRequest.dataset}).then(
-    (value: OutputDatasetObsoleteDto) => 
-      {
-        const isPublic = value.isPublished; 
-        const hasAccessGroup = value.accessGroups.some(item => new Set(authRequest.jwt.groups).has(item)); 
-        const hasOwnerGroup = authRequest.jwt.groups.includes(value.ownerGroup);  
-        if (isPublic || hasAccessGroup || hasOwnerGroup) {
-          return true;
-        }
-        return false;
+  const valid = await dataSetAPI
+    .datasetsControllerFindById({ pid: authRequest.dataset })
+    .then((value: OutputDatasetObsoleteDto) => {
+      const isPublic = value.isPublished;
+      const hasAccessGroup = value.accessGroups.some((item) =>
+        new Set(authRequest.jwt.groups).has(item)
+      );
+      const hasOwnerGroup = authRequest.jwt.groups.includes(value.ownerGroup);
+      if (isPublic || hasAccessGroup || hasOwnerGroup) {
+        return true;
       }
-    ).catch((e) => {
-       
+      return false;
+    })
+    .catch(() => {
       return false;
     });
-  
-    return {
-      hasAccess: valid,
-      statusCode: valid ? 200 : 403,
-      error: valid ? "" : "You do not have access to this resource",
-      directory: valid ? authRequest.directory : undefined,
-      fileNames: valid ? authRequest.fileNames : [],
-    };
-}
+
+  return {
+    hasAccess: valid,
+    statusCode: valid ? 200 : 403,
+    error: valid ? "" : "You do not have access to this resource",
+    directory: valid ? authRequest.directory : undefined,
+    fileNames: valid ? authRequest.fileNames : [],
+  };
+};

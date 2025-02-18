@@ -37,7 +37,7 @@ router.post("/", async (req, res) => {
       new Date().getTime() +
       ".zip";
     logger.logInfo("Zip file name : " + zipFileName, {});
-    req.session.zipData = initSession(directory, fileNames, zipFileName);
+    req.session.zipData = initSession(directory, fileNames, zipFileName, req.body.dataset);
     res.render("zipping", { total: fileNames.length, zipFileName });
     if (!fs.existsSync(config.zipDir)) {
       fs.mkdirSync(config.zipDir);
@@ -55,9 +55,7 @@ router.post("/", async (req, res) => {
       req.session.save();
     });
     archive.on("entry", function () {
-      req.session.zipData.files[
-        req.session.zipData.currentFileIndex
-      ].progress = 1;
+      req.session.zipData.files[req.session.zipData.currentFileIndex].progress = 1;
       req.session.zipData.currentFileIndex += 1;
       req.session.zipData.zipSizeOnLastCompletedEntry = getFileSizeInBytes(
         config.zipDir + "/" + zipFileName
@@ -84,13 +82,8 @@ router.post("/", async (req, res) => {
 
 // Polled periodically from the zipping view. Returns current progress or resulting file name if the zipping is done
 router.get("/", (req, res) => {
-  const {
-    currentFileIndex,
-    ready,
-    files,
-    zipFileName,
-    zipSizeOnLastCompletedEntry,
-  } = req.session.zipData;
+  const { currentFileIndex, ready, files, zipFileName, zipSizeOnLastCompletedEntry } =
+    req.session.zipData;
   const zipSize = getFileSizeInBytes(config.zipDir + "/" + zipFileName);
   if (ready || currentFileIndex === files.length) {
     return res.send(req.session.zipData);
@@ -109,7 +102,8 @@ const getFileSizeInBytes = (filename: string) => {
 const initSession = (
   directory: string,
   fileNames: string[],
-  zipFileName: string
+  zipFileName: string,
+  datasetId: string
 ): Global.ZipData => {
   return {
     directory,
@@ -124,5 +118,6 @@ const initSession = (
     zipFileName,
     zipSizeOnLastCompletedEntry: 0,
     ready: false,
+    datasetId,
   };
 };

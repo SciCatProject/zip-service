@@ -4,7 +4,7 @@ import { config } from "./config";
 let datasetsApiInstance: DatasetsApi | null = null;
 
 export function scicatDataSetAPI(): DatasetsApi {
-   const { basePath, accessToken } = config;
+  const { basePath, accessToken } = config;
 
   if (!datasetsApiInstance) {
 
