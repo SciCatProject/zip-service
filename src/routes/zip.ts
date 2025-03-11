@@ -5,6 +5,7 @@ import { config } from "../common/config";
 import archiver from "archiver";
 import { hasFileAccess } from "../auth";
 import { logger } from "@user-office-software/duo-logger";
+import path from "path";
 
 export const router = express.Router();
 
@@ -13,16 +14,21 @@ export const router = express.Router();
  * Request zipping of files. Require directory:string and files:string[] in the request body
  */
 router.post("/", async (req, res) => {
+  const bodyDirectory = req.body.directory;
+  const bodyFileNames = req.body.files;
+  const datasetId = req.body.dataset;
+
+  const { finalDirectory, finalFileNames } = transformPaths(bodyDirectory, bodyFileNames);
   logger.logInfo("Request has been submitted", {
-    directory: req.body.directory,
-    fileNames: req.body.files,
+    directory: finalDirectory,
+    fileNames: finalFileNames,
   });
 
   const { hasAccess, statusCode, error, directory, fileNames } = await hasFileAccess(
     req,
-    req.body.directory,
-    req.body.files,
-    req.body.dataset
+    finalDirectory,
+    finalFileNames,
+    datasetId
   );
 
   if (!hasAccess) {
@@ -37,7 +43,7 @@ router.post("/", async (req, res) => {
       new Date().getTime() +
       ".zip";
     logger.logInfo("Zip file name : " + zipFileName, {});
-    req.session.zipData = initSession(directory, fileNames, zipFileName, req.body.dataset);
+    req.session.zipData = initSession(directory, fileNames, zipFileName, datasetId);
     res.render("zipping", { total: fileNames.length, zipFileName });
     if (!fs.existsSync(config.zipDir)) {
       fs.mkdirSync(config.zipDir);
@@ -94,9 +100,25 @@ router.get("/", (req, res) => {
   return res.send(req.session.zipData);
 });
 
+const transformPaths = (directory: string, fileNames: string[]) => {
+  const absoluteFile = fileNames.find((fileName) => path.isAbsolute(fileName));
+
+  if (absoluteFile) {
+    const newDirectory = path.join(".", path.dirname(absoluteFile));
+    const trimmedFileNames = fileNames.map((fileName) => path.basename(fileName));
+    return { finalDirectory: newDirectory, finalFileNames: trimmedFileNames };
+  }
+  return { finalDirectory: directory, finalFileNames: fileNames };
+};
+
 const getFileSizeInBytes = (filename: string) => {
-  const stats = fs.statSync(filename);
-  return stats.size;
+  try {
+    const stats = fs.statSync(filename);
+    return stats.size;
+  } catch (err) {
+    logger.logError("Error getting file size", { err });
+    return 0;
+  }
 };
 
 const initSession = (
@@ -104,20 +126,16 @@ const initSession = (
   fileNames: string[],
   zipFileName: string,
   datasetId: string
-): Global.ZipData => {
-  return {
-    directory,
-    currentFileIndex: 0,
-    files: fileNames.map((fileName) => {
-      return {
-        fileName,
-        size: getFileSizeInBytes(directory + "/" + fileName),
-        progress: 0,
-      };
-    }),
-    zipFileName,
-    zipSizeOnLastCompletedEntry: 0,
-    ready: false,
-    datasetId,
-  };
-};
+): Global.ZipData => ({
+  directory,
+  currentFileIndex: 0,
+  files: fileNames.map((fileName) => ({
+    fileName,
+    size: getFileSizeInBytes(fileName),
+    progress: 0,
+  })),
+  zipFileName,
+  zipSizeOnLastCompletedEntry: 0,
+  ready: false,
+  datasetId,
+});
