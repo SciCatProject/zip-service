@@ -67,7 +67,7 @@ const deleteZipFiles = () => {
           if (now > endTime) {
             return rimraf(path.join(config.zipDir, file), function (err3) {
               if (err3) {
-                logger.logError("Error occured while trying to delete file " + file, { err3 });
+                logger.logError("Error occured while trying to delete file: " + file, { err3 });
 
                 return;
               }
