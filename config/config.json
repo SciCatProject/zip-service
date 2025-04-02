@@ -6,7 +6,7 @@
   "zipRetentionMillis": 3600000,
   "dramDirectory": "/nfs/groups/beamlines/dram",
   "testData": {
-    "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJncm91cHMiOlsiZXNzIiwibG9raSIsIm9kaW4iXSwiaWF0IjoxNTY3NDI3NzA5LCJleHAiOjE1Njc0MzEzMDl9.ENcuTBS67shghefL3wRCHxoyobwZGaFQIUvSZ0cywcE",
+    "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1Y2ExZDY4Y2VmMGMzYTAwMDkyNjcyZGEiLCJyZWFsbSI6ImxvY2FsaG9zdCIsInVzZXJuYW1lIjoiYWRtaW4iLCJncm91cHMiOiJlc3MiLCJlbWFpbCI6InNjaWNhdGFkbWluQHlvdXIuc2l0ZSIsImVtYWlsVmVyaWZpZWQiOnRydWUsImF1dGhTdHJhdGVneSI6ImxvY2FsIiwiaWQiOiI1Y2ExZDY4Y2VmMGMzYTAwMDkyNjcyZGEiLCJpYXQiOjE3NDEyNzk0NjQsImV4cCI6NDg5NzAzOTQ2NH0.FL7b4pEdJ0LhZualaWOQAikZOFeQg5HloER_xS0RrNE",
     "directory": "./test/",
     "files": ["test_file_1.txt"]
   },
@@ -14,6 +14,6 @@
   "graylogServer": "it-graylog.esss.lu.se",
   "graylogPort": 12201,
   "environment": "development",
-  "basePath": "", 
-  "accessToken": ""
+  "basePath": "http://localhost:3000",
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1Y2ExZDY4Y2VmMGMzYTAwMDkyNjcyZGEiLCJyZWFsbSI6ImxvY2FsaG9zdCIsInVzZXJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6InNjaWNhdGFkbWluQHlvdXIuc2l0ZSIsImVtYWlsVmVyaWZpZWQiOnRydWUsImF1dGhTdHJhdGVneSI6ImxvY2FsIiwiaWQiOiI1Y2ExZDY4Y2VmMGMzYTAwMDkyNjcyZGEiLCJpYXQiOjE3NDM1OTg2NjQsImV4cCI6MTc0MzYwMjI2NH0.SEQOg9th5dl-q0ZN_1Nm14JMmlFVlK1ixnZ5uzRT67o"
 }

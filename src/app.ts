@@ -6,7 +6,6 @@ import { config } from "./common/config";
 import express from "express";
 import path from "path";
 import cookieParser from "cookie-parser";
-import { router as zipInPlaceRouter } from "./routes/zip_in_place";
 import { router as zipRouter } from "./routes/zip";
 import { router as downloadRouter } from "./routes/download";
 import { router as indexRouter } from "./routes/index";
@@ -40,7 +39,6 @@ app.use(
 
 app.use("/", indexRouter);
 app.use("/zip", zipRouter);
-app.use("/zip_in_place", zipInPlaceRouter);
 app.use("/download", downloadRouter);
 app.use("/upload", uploadRouter);
 
@@ -69,10 +67,7 @@ const deleteZipFiles = () => {
           if (now > endTime) {
             return rimraf(path.join(config.zipDir, file), function (err3) {
               if (err3) {
-                logger.logError(
-                  "Error occured while trying to delete file " + file,
-                  { err3 }
-                );
+                logger.logError("Error occured while trying to delete file " + file, { err3 });
 
                 return;
               }

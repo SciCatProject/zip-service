@@ -6,11 +6,11 @@ import jwtLib from "jsonwebtoken";
 import { logger } from "@user-office-software/duo-logger";
 import { scicatDataSetAPI } from "./common/scicatAPI";
 import { OutputDatasetObsoleteDto } from "@scicatproject/scicat-sdk-ts-fetch/dist/models";
+import path from "path";
 
 export const hasFileAccess = async (
   req: express.Request,
-  directory: string,
-  fileNames: string[],
+  absoluteFileNames: string[],
   dataset: string
 ): Promise<Global.AuthResponse> => {
   const { jwtSecret } = config;
@@ -21,7 +21,6 @@ export const hasFileAccess = async (
       hasAccess: false,
       statusCode: 500,
       error: "No JWT secret has been set for zip-service",
-      directory: undefined,
       fileNames: [],
     };
   }
@@ -34,7 +33,6 @@ export const hasFileAccess = async (
       hasAccess: false,
       statusCode: 401,
       error: "Invalid or expired JWT",
-      directory: undefined,
       fileNames: [],
     };
   }
@@ -45,45 +43,36 @@ export const hasFileAccess = async (
     jwt: jwtDecoded,
     endpoint: req.originalUrl,
     httpMethod: req.method,
-    directory,
-    fileNames,
+    fileNames: absoluteFileNames,
     dataset,
   };
 
-  if (!authRequest.directory) {
-    return {
-      hasAccess: false,
-      statusCode: 400,
-      error: "'directory' was not specified",
-      directory: undefined,
-      fileNames: [],
-    };
-  }
   if (!authRequest.fileNames || authRequest.fileNames.length === 0) {
     return {
       hasAccess: false,
       statusCode: 400,
       error: "'fileNames' was not specified",
-      directory: undefined,
       fileNames: [],
     };
   }
-  if (!fs.existsSync(authRequest.directory)) {
-    return {
-      hasAccess: false,
-      statusCode: 404,
-      error: `The directory ${authRequest.directory} does not exist`,
-      directory: undefined,
-      fileNames: [],
-    };
+  for (const fileName of absoluteFileNames) {
+    const directory = path.dirname(fileName);
+    if (!fs.existsSync(directory)) {
+      return {
+        hasAccess: false,
+        statusCode: 404,
+        error: `The directory ${directory} does not exist`,
+        fileNames: [],
+      };
+    }
   }
+
   const groups = jwtDecoded.groups;
   if (!groups) {
     return {
       hasAccess: false,
       statusCode: 400,
       error: "The jwt does not contain field 'groups'",
-      directory: undefined,
       fileNames: [],
     };
   }
@@ -95,6 +84,7 @@ export const hasFileAccess = async (
       const hasAccessGroup = value.accessGroups.some((item) =>
         new Set(authRequest.jwt.groups).has(item)
       );
+
       const hasOwnerGroup = authRequest.jwt.groups.includes(value.ownerGroup);
       if (isPublic || hasAccessGroup || hasOwnerGroup) {
         return true;
@@ -109,7 +99,6 @@ export const hasFileAccess = async (
     hasAccess: valid,
     statusCode: valid ? 200 : 403,
     error: valid ? "" : "You do not have access to this resource",
-    directory: valid ? authRequest.directory : undefined,
     fileNames: valid ? authRequest.fileNames : [],
   };
 };

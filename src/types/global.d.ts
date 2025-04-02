@@ -10,7 +10,6 @@ declare global {
       username: string;
     }
     interface ZipData {
-      directory: string;
       currentFileIndex: number;
       files: { fileName: string; size: number; progress: number }[];
       zipSizeOnLastCompletedEntry: number;
@@ -26,7 +25,6 @@ declare global {
       jwt: JWT;
       endpoint: string;
       httpMethod: string;
-      directory: string;
       fileNames: string[];
       dataset: string;
     }
@@ -34,7 +32,6 @@ declare global {
       hasAccess: boolean;
       statusCode: number;
       error?: string;
-      directory: string | undefined;
       fileNames: string[];
     }
   }
