@@ -51,6 +51,10 @@ data: {
 
 /zip shows a page with a progress bar, resulting in a downloadable zip-file.
 
+## zip in place
+
+While [zip with download](zip-with-download) is a two step process (the file is zipped to a temporary directory on the server and then downloaded from the browser), another route, /zip_in_place exists which zips the payload in the same time as downloading.
+
 # local.config.json
 
 Required in the root directory.

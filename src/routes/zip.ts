@@ -19,7 +19,7 @@ router.post("/", async (req, res) => {
   const datasetId = req.body.dataset;
 
   const absoluteFileNames = transformPaths(bodyDirectory, bodyFileNames);
-  logger.logInfo("Request has been submitted", {
+  logger.logInfo("Request has been submitted ", {
     fileNames: absoluteFileNames,
   });
 
@@ -44,6 +44,13 @@ router.post("/", async (req, res) => {
       fs.mkdirSync(config.zipDir);
     }
     const fileStream = fs.createWriteStream(config.zipDir + "/" + zipFileName);
+    // **
+    // Compression levels
+    // #define Z_NO_COMPRESSION         0
+    // #define Z_BEST_SPEED             1
+    // #define Z_BEST_COMPRESSION       9
+    // #define Z_DEFAULT_COMPRESSION  (-1)
+    // **
     const archive = archiver("zip", {
       gzip: true,
       zlib: { level: 9 },
