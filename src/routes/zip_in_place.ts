@@ -1,20 +1,28 @@
 import express from "express";
 import * as fs from "fs";
-import * as crypto from "crypto";
-// import config from "../local.config.json";
 import archiver from "archiver";
 import { hasFileAccess } from "../auth";
 import { logger } from "@user-office-software/duo-logger";
+import path from "path";
+import { v4 as uuidv4 } from "uuid";
 
 export const router = express.Router();
 
 /* POST zip */
 router.post("/", async function (req: express.Request, res: express.Response) {
-  const { hasAccess, statusCode, error, directory, fileNames } = await hasFileAccess(
+  const bodyDirectory = req.body.directory;
+  const bodyFileNames = req.body.files;
+  const datasetId = req.body.dataset;
+
+  const absoluteFileNames = transformPaths(bodyDirectory, bodyFileNames);
+  logger.logInfo("Request has been submitted", {
+    fileNames: absoluteFileNames,
+  });
+
+  const { hasAccess, statusCode, error, fileNames } = await hasFileAccess(
     req,
-    req.body.directory,
-    req.body.files,
-    req.body.dataset
+    absoluteFileNames,
+    datasetId
   );
   const readOpts = { highWaterMark: Math.pow(2, 20) };
 
@@ -24,8 +32,13 @@ router.post("/", async function (req: express.Request, res: express.Response) {
   }
 
   try {
-    // res.useChunkedEncodingByDefault = true;
-
+    // **
+    // Compression levels
+    // #define Z_NO_COMPRESSION         0
+    // #define Z_BEST_SPEED             1
+    // #define Z_BEST_COMPRESSION       9
+    // #define Z_DEFAULT_COMPRESSION  (-1)
+    // **
     const archive = archiver("zip", {
       zlib: { level: 1 },
     });
@@ -46,11 +59,7 @@ router.post("/", async function (req: express.Request, res: express.Response) {
       res.end();
     });
 
-    const zipFileName =
-      crypto.createHash("md5").update(directory).digest("hex") +
-      "_" +
-      new Date().getTime() +
-      ".zip";
+    const zipFileName = uuidv4() + "_" + new Date().getTime() + ".zip";
 
     res.attachment(zipFileName).type("zip");
 
@@ -63,10 +72,11 @@ router.post("/", async function (req: express.Request, res: express.Response) {
     logger.logInfo(`zip file name ${zipFileName}`, {});
 
     fileNames.map((file) => {
-      if (file.length == 0) return;
-      const read = makeReadStream(`${req.body.directory}/${file}`);
+      if (file.length == 0 || fs.lstatSync(file).isDirectory()) return;
+
+      const read = makeReadStream(file);
       logger.logInfo(`appending ${file}`, {});
-      archive.append(read, { name: file });
+      archive.append(read, { name: path.basename(file) });
     });
     archive.finalize();
   } catch (error) {
@@ -87,3 +97,10 @@ router.post("/", async function (req: express.Request, res: express.Response) {
     return read;
   }
 });
+const transformPaths = (directory: string, fileNames: string[]) => {
+  const absoluteFileNames = fileNames.map((fileName) =>
+    path.isAbsolute(fileName) ? path.join(".", fileName) : path.join(directory, fileName)
+  );
+
+  return absoluteFileNames;
+};

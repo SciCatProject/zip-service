@@ -1,10 +1,11 @@
 import express from "express";
 import * as fs from "fs";
-import * as crypto from "crypto";
 import { config } from "../common/config";
 import archiver from "archiver";
 import { hasFileAccess } from "../auth";
 import { logger } from "@user-office-software/duo-logger";
+import path from "path";
+import { v4 as uuidv4 } from "uuid";
 
 export const router = express.Router();
 
@@ -13,16 +14,19 @@ export const router = express.Router();
  * Request zipping of files. Require directory:string and files:string[] in the request body
  */
 router.post("/", async (req, res) => {
-  logger.logInfo("Request has been submitted", {
-    directory: req.body.directory,
-    fileNames: req.body.files,
+  const bodyDirectory = req.body.directory;
+  const bodyFileNames = req.body.files;
+  const datasetId = req.body.dataset;
+
+  const absoluteFileNames = transformPaths(bodyDirectory, bodyFileNames);
+  logger.logInfo("Request has been submitted ", {
+    fileNames: absoluteFileNames,
   });
 
-  const { hasAccess, statusCode, error, directory, fileNames } = await hasFileAccess(
+  const { hasAccess, statusCode, error, fileNames } = await hasFileAccess(
     req,
-    req.body.directory,
-    req.body.files,
-    req.body.dataset
+    absoluteFileNames,
+    datasetId
   );
 
   if (!hasAccess) {
@@ -31,18 +35,22 @@ router.post("/", async (req, res) => {
     return res.render("error", { statusCode, error });
   }
   try {
-    const zipFileName =
-      crypto.createHash("md5").update(directory).digest("hex") +
-      "_" +
-      new Date().getTime() +
-      ".zip";
+    const zipFileName = uuidv4() + "_" + new Date().getTime() + ".zip";
+
     logger.logInfo("Zip file name : " + zipFileName, {});
-    req.session.zipData = initSession(directory, fileNames, zipFileName, req.body.dataset);
+    req.session.zipData = initSession(absoluteFileNames, zipFileName, datasetId);
     res.render("zipping", { total: fileNames.length, zipFileName });
     if (!fs.existsSync(config.zipDir)) {
       fs.mkdirSync(config.zipDir);
     }
     const fileStream = fs.createWriteStream(config.zipDir + "/" + zipFileName);
+    // **
+    // Compression levels
+    // #define Z_NO_COMPRESSION         0
+    // #define Z_BEST_SPEED             1
+    // #define Z_BEST_COMPRESSION       9
+    // #define Z_DEFAULT_COMPRESSION  (-1)
+    // **
     const archive = archiver("zip", {
       gzip: true,
       zlib: { level: 9 },
@@ -65,12 +73,13 @@ router.post("/", async (req, res) => {
     archive.pipe(fileStream);
     try {
       fileNames.map((fileName: string) => {
+        const directory = path.dirname(fileName);
         if (fs.existsSync(directory)) {
-          archive.file(directory + "/" + fileName, { name: fileName });
+          archive.file(fileName, { name: fileName });
         }
       });
     } catch (error) {
-      logger.logError("Failed zipping " + directory, {});
+      logger.logError("Failed zipping " + absoluteFileNames, {});
     }
     archive.finalize();
   } catch (error) {
@@ -94,30 +103,36 @@ router.get("/", (req, res) => {
   return res.send(req.session.zipData);
 });
 
+const transformPaths = (directory: string, fileNames: string[]) => {
+  const absoluteFileNames = fileNames.map((fileName) =>
+    path.isAbsolute(fileName) ? path.join(".", fileName) : path.join(directory, fileName)
+  );
+
+  return absoluteFileNames;
+};
 const getFileSizeInBytes = (filename: string) => {
-  const stats = fs.statSync(filename);
-  return stats.size;
+  try {
+    const stats = fs.statSync(filename);
+    return stats.size;
+  } catch (err) {
+    logger.logError("Error getting file size", { err });
+    return 0;
+  }
 };
 
 const initSession = (
-  directory: string,
-  fileNames: string[],
+  absoluteFileNames: string[],
   zipFileName: string,
   datasetId: string
-): Global.ZipData => {
-  return {
-    directory,
-    currentFileIndex: 0,
-    files: fileNames.map((fileName) => {
-      return {
-        fileName,
-        size: getFileSizeInBytes(directory + "/" + fileName),
-        progress: 0,
-      };
-    }),
-    zipFileName,
-    zipSizeOnLastCompletedEntry: 0,
-    ready: false,
-    datasetId,
-  };
-};
+): Global.ZipData => ({
+  currentFileIndex: 0,
+  files: absoluteFileNames.map((fileName) => ({
+    fileName,
+    size: getFileSizeInBytes(fileName),
+    progress: 0,
+  })),
+  zipFileName,
+  zipSizeOnLastCompletedEntry: 0,
+  ready: false,
+  datasetId,
+});

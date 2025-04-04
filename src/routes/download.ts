@@ -26,7 +26,6 @@ router.get("/:file", function (req, res) {
     const oldZipData = req.session.zipData;
 
     req.session.zipData = {
-      directory: "",
       currentFileIndex: 0,
       files: [],
       zipFileName: "",
