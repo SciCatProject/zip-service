@@ -105,7 +105,7 @@ router.get("/", (req, res) => {
 
 const transformPaths = (directory: string, fileNames: string[]) => {
   const absoluteFileNames = fileNames.map((fileName) =>
-    path.isAbsolute(fileName) ? path.join(".", fileName) : path.join(directory, fileName)
+    path.isAbsolute(fileName) ? fileName : path.join(directory, fileName)
   );
 
   return absoluteFileNames;
