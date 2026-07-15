@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,shrink-to-fit=no"
+    />
+    <link rel="stylesheet" type="text/css" href="<%= routeBasePath %>/css/index.css" />
+    <title>zip-service file</title>
+  </head>
+  <body>
+    <div class="container">
+      <h2 style="padding-left: 1em">Single file</h2>
+      <div class="flex-container">
+        <div
+          class="flex-panel-item"
+          style="font-style: italic; font-size: 0.8em;"
+        >
+          <p>
+            Submit a POST request to <code>/file</code> with a jwt, dataset,
+            and file name. Use directory for direct path resolution, or omit it
+            to resolve the path from the configured dataset keywords.
+          </p>
+          <p><a href="<%= routeBasePath %>/">Back to forms</a></p>
+        </div>
+        <form action="<%= routeBasePath %>/file" method="POST" class="flex-panel-item">
+          <div class="table-flex-container">
+            <div>JWT</div>
+            <input
+              placeholder="Not needed if jwt cookie is present"
+              type="text"
+              name="jwt"
+              class="input"
+              value="<%= jwt %>"
+            />
+          </div>
+          <div class="table-flex-container">
+            <div>Directory</div>
+            <input
+              type="text"
+              name="directory"
+              class="input"
+              value="<%= directory %>"
+            />
+          </div>
+          <div class="table-flex-container">
+            <div>Dataset PID</div>
+            <input
+              type="text"
+              name="dataset"
+              class="input"
+              value="<%= dataset %>"
+            />
+          </div>
+          <div class="table-flex-container">
+            <div>File</div>
+            <input
+              type="text"
+              name="fileName"
+              class="input"
+              value="<%= file0 %>"
+            />
+          </div>
+          <div class="table-flex-container">
+            <input type="submit" name="fileAction" value="Create File Link" />
+          </div>
+          <div class="table-flex-container">
+            <input type="submit" name="fileAction" value="Download" />
+          </div>
+          <div class="table-flex-container">
+            <input type="submit" name="fileAction" value="Open" />
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

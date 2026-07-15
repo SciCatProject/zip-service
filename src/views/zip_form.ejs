@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,shrink-to-fit=no"
+    />
+    <link rel="stylesheet" type="text/css" href="<%= routeBasePath %>/css/index.css" />
+    <title>zip-service zip</title>
+  </head>
+  <body>
+    <div class="container">
+      <h2 style="padding-left: 1em">Zip files</h2>
+      <div class="flex-container">
+        <div
+          class="flex-panel-item"
+          style="font-style: italic; font-size: 0.8em;"
+        >
+          <p>
+            Submit a POST request to <code>/zip</code> with a jwt, dataset,
+            directory, and file array. The result is a progress page that links
+            to the generated zip file when processing is complete.
+          </p>
+          <p><a href="<%= routeBasePath %>/">Back to forms</a></p>
+        </div>
+        <form action="<%= routeBasePath %>/zip" method="POST" class="flex-panel-item">
+          <div class="table-flex-container">
+            <div>JWT</div>
+            <input
+              placeholder="Not needed if jwt cookie is present"
+              type="text"
+              name="jwt"
+              class="input"
+              value="<%= jwt %>"
+            />
+          </div>
+          <div class="table-flex-container">
+            <div>Directory</div>
+            <input
+              type="text"
+              name="directory"
+              class="input"
+              value="<%= directory %>"
+            />
+          </div>
+          <div class="table-flex-container">
+            <div>Dataset PID</div>
+            <input
+              type="text"
+              name="dataset"
+              class="input"
+              value="<%= dataset %>"
+            />
+          </div>
+          <div class="table-flex-container">
+            <div>File 1</div>
+            <input
+              type="text"
+              name="files[0]"
+              class="input"
+              value="<%= file0 %>"
+            />
+          </div>
+          <div class="table-flex-container">
+            <div>File 2</div>
+            <input
+              type="text"
+              class="input"
+              name="files[1]"
+              value="<%= file1 %>"
+            />
+          </div>
+          <div class="table-flex-container">
+            <div>File 3</div>
+            <input
+              type="text"
+              name="files[2]"
+              class="input"
+              value="<%= file2 %>"
+            />
+          </div>
+          <div class="table-flex-container">
+            <input type="submit" value="Execute" />
+          </div>
+          <div class="table-flex-container">
+            <input
+              type="submit"
+              value="Execute In-Place"
+              formaction="<%= routeBasePath %>/zip_in_place"
+            />
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

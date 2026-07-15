@@ -1,19 +1,28 @@
 {
   "zipDir": "./files",
-  "jwtSecret": "fhjekrsgvhuirs",
-  "sessionSecret": "fj9832mnsaf3j9adsa",
-  "facility": "ess",
+  "jwtSecret": "dev_secret",
+  "sessionSecret": "dev_secret",
+  "facility": "ILL",
   "zipRetentionMillis": 3600000,
-  "dramDirectory": "/nfs/groups/beamlines/dram",
+  "dataDirectory": "/illdata",
+  "directoryPathPattern": "/illdata/*/{instrumentIds[0]}/{proposalIds[0]}/{type}",
+  "requiredKeywords": [
+    "intrumentIds[0]",
+    "proposalIds[0]",
+    "type"
+  ],
+  "hdfViewServiceUrl": "http://localhost:8080",
   "testData": {
-    "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJncm91cHMiOlsiZXNzIiwibG9raSIsIm9kaW4iXSwiaWF0IjoxNTY3NDI3NzA5LCJleHAiOjE1Njc0MzEzMDl9.ENcuTBS67shghefL3wRCHxoyobwZGaFQIUvSZ0cywcE",
+    "jwt": "",
     "directory": "./test/",
-    "files": ["test_file_1.txt"]
+    "files": [
+      "test_file_1.txt"
+    ]
   },
   "graylogEnabled": false,
   "graylogServer": "it-graylog.esss.lu.se",
   "graylogPort": 12201,
   "environment": "development",
-  "basePath": "",
+  "basePath": "http://localhost:4200",
   "accessToken": ""
 }
