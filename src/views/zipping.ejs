@@ -2,9 +2,9 @@
 <html lang="en">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" type="text/css" href="/css/index.css" />
-    <script type="text/javascript" src="/js/jquery.min.js"></script>
-    <script type="text/javascript" src="/js/progressbar.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="<%= routeBasePath %>/css/index.css" />
+    <script type="text/javascript" src="<%= routeBasePath %>/js/jquery.min.js"></script>
+    <script type="text/javascript" src="<%= routeBasePath %>/js/progressbar.min.js"></script>
     <script>
        var currentFileIndex = 0;
       $( document ).ready(function() {
@@ -17,6 +17,7 @@
           trailWidth: 20,
           svgStyle: null
         });
+        var routeBasePath = <%- JSON.stringify(routeBasePath || "").replace(/</g, "\\u003c") %>;
         var zipFileName = '<%= zipFileName %>';
         var total = '<%= total %>';
         iId = setInterval(() => {poll(circle, total, zipFileName)}, 1000);
@@ -24,12 +25,12 @@
       });
 
       function poll(circle, total, zipFileName){
-        $.get( "/zip").done(function( data ){
+        $.get( `${routeBasePath}/zip/status`).done(function( data ){
           const progress = `<div style="font-weight: bold">Processing ${data.currentFileIndex + 1}/${total} files</div>`
           if (data.ready){
             clearInterval(iId);
             circle.animate(1, {duration: 1000});
-            $( "#status" ).html(`<div><a target="_blank" href="download/${zipFileName}">Download</a></div>`);
+            $( "#status" ).html(`<div><a target="_blank" href="${routeBasePath}/download/${zipFileName}">Download</a></div>`);
 
             $( "#title" ).html("Done!");
 

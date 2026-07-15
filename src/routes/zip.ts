@@ -9,6 +9,10 @@ import { v4 as uuidv4 } from "uuid";
 
 export const router = express.Router();
 
+router.get("/", (req, res) => {
+  res.render("zip_form", getFormDefaults());
+});
+
 /* POST zip */
 /**
  * Request zipping of files. Require directory:string and files:string[] in the request body
@@ -90,7 +94,7 @@ router.post("/", async (req, res) => {
 });
 
 // Polled periodically from the zipping view. Returns current progress or resulting file name if the zipping is done
-router.get("/", (req, res) => {
+router.get("/status", (req, res) => {
   const { currentFileIndex, ready, files, zipFileName, zipSizeOnLastCompletedEntry } =
     req.session.zipData;
   const zipSize = getFileSizeInBytes(config.zipDir + "/" + zipFileName);
@@ -136,3 +140,14 @@ const initSession = (
   ready: false,
   datasetId,
 });
+
+function getFormDefaults() {
+  return {
+    jwt: config.testData.jwt || "",
+    directory: config.testData.directory || "",
+    dataset: "",
+    file0: config.testData?.files[0] || "",
+    file1: config.testData?.files[1] || "",
+    file2: config.testData?.files[2] || "",
+  };
+}
