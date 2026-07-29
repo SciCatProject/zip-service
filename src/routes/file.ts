@@ -364,7 +364,6 @@ function createHdfViewUrl(fileUrl: string, filename?: string) {
     return null;
   }
   url.searchParams.set("url", encodeURIComponent(fileUrl));
-  url.searchParams.set("filesSidebar", "hidden");
   if (filename) {
     url.searchParams.set("label", filename);
   }
