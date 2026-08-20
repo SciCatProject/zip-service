@@ -1,6 +1,8 @@
 import express from "express";
 import * as fs from "fs";
 import archiver from "archiver";
+import { config } from "../common/config";
+import { resolveFilePath } from "../common/file_utils";
 import { hasFileAccess } from "../auth";
 import { logger } from "@user-office-software/duo-logger";
 import path from "path";
@@ -8,28 +10,68 @@ import { v4 as uuidv4 } from "uuid";
 
 export const router = express.Router();
 
+function resolvePaths(
+  res: express.Response,
+  filenames: string[],
+  keywords: Record<string, string>,
+) {
+  const absPaths = [];
+  for (const file in filenames) {
+    const resolvedFile = resolveFilePath(file, undefined, keywords);
+    if (resolvedFile.error) {
+      res.statusCode = resolvedFile.statusCode;
+      res.send(resolvedFile.error);
+      return [];
+    }
+    absPaths.push(path.join(resolvedFile.folders[0], resolvedFile.filename));
+  }
+  return absPaths;
+}
+
 /* POST zip */
 router.post("/", async function (req: express.Request, res: express.Response) {
   const bodyDirectory = req.body.directory;
   const bodyFileNames = req.body.files;
   const datasetId = req.body.dataset;
 
-  const absoluteFileNames = transformPaths(bodyDirectory, bodyFileNames);
-  logger.logInfo("Request has been submitted", {
-    fileNames: absoluteFileNames,
-  });
+  let absoluteFilePaths = [];
+  if (
+    typeof bodyDirectory !== "string" &&
+    Boolean(config.directoryPathPattern)
+  ) {
+    // Resolve filePaths from dataset
+    const authResponse = await hasFileAccess(req, bodyFileNames, datasetId);
+    if (!authResponse.hasAccess) {
+      logger.logError("Error accessing files", {
+        statusCode: authResponse.statusCode,
+        error: authResponse.error,
+      });
 
-  const { hasAccess, statusCode, error, fileNames } = await hasFileAccess(
-    req,
-    absoluteFileNames,
-    datasetId
-  );
-  const readOpts = { highWaterMark: Math.pow(2, 20) };
+      return res.status(authResponse.statusCode).send({
+        error: authResponse.error,
+      });
+    }
+    absoluteFilePaths = resolvePaths(res, bodyFileNames, authResponse.keywords);
+  } else {
+    absoluteFilePaths = transformPaths(bodyDirectory, bodyFileNames);
+    logger.logInfo("Request has been submitted", {
+      fileNames: absoluteFilePaths,
+    });
+    const { hasAccess, statusCode, error } = await hasFileAccess(
+      req,
+      absoluteFilePaths,
+      datasetId,
+    );
 
-  if (!hasAccess) {
-    logger.logError(`error zipping file ${error}`, {});
-    return res.render("error", { statusCode, error });
+    if (!hasAccess) {
+      logger.logError(`error zipping files ${error}`, {});
+      return res.render("error", { statusCode, error });
+    }
   }
+
+  const files = absoluteFilePaths;
+
+  const readOpts = { highWaterMark: Math.pow(2, 20) };
 
   try {
     // **
@@ -71,7 +113,7 @@ router.post("/", async function (req: express.Request, res: express.Response) {
 
     logger.logInfo(`zip file name ${zipFileName}`, {});
 
-    fileNames.map((file) => {
+    files.map((file) => {
       if (file.length == 0 || fs.lstatSync(file).isDirectory()) return;
 
       const read = makeReadStream(file);
@@ -99,7 +141,7 @@ router.post("/", async function (req: express.Request, res: express.Response) {
 });
 const transformPaths = (directory: string, fileNames: string[]) => {
   const absoluteFileNames = fileNames.map((fileName) =>
-    path.isAbsolute(fileName) ? fileName : path.join(directory, fileName)
+    path.isAbsolute(fileName) ? fileName : path.join(directory, fileName),
   );
 
   return absoluteFileNames;
