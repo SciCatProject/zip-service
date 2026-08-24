@@ -4,7 +4,8 @@
   "sessionSecret": "dev_secret",
   "facility": "ILL",
   "zipRetentionMillis": 3600000,
-  "dataDirectory": "/illdata",
+  "fileLinkRetentionMillis": 3600000,
+  "allowedDataDirectory": "/illdata",
   "directoryPathPattern": "/illdata/*/{instrumentIds[0]}/{proposalIds[0]}/{type}",
   "requiredKeywords": [
     "intrumentIds[0]",
@@ -14,7 +15,6 @@
   "hdfViewServiceUrl": "http://localhost:8080",
   "testData": {
     "jwt": "",
-    "directory": "./test/",
     "files": [
       "test_file_1.txt"
     ]
