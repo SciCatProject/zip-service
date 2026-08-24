@@ -18,6 +18,15 @@ export interface FileResolution {
   folders?: string[];
 }
 
+export function validateFilenames(filenames: string[]): boolean {
+  for (const filename of filenames) {
+    if (filename.includes("..")) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function resolvePattern(
   pattern: string,
   keywords: Record<string, string>,
@@ -28,6 +37,8 @@ export function resolvePattern(
       if (value === undefined) {
         throw new Error(`Missing keyword '${key}'`);
       }
+      if (!validateResolvedPattern(value))
+        throw new Error("The resolved path is not valid or unaccessable !");
       if (config.facility === "ILL") {
         if (key.startsWith("proposalId")) {
           return value.startsWith("internalUse") ? value : "exp_" + value;
@@ -42,6 +53,17 @@ export function resolvePattern(
       return undefined;
     }
   });
+}
+
+export function validateResolvedPattern(pattern: string): boolean {
+  const allowed = path.resolve(config.allowedDataDirectory);
+  const patternDir = path.resolve(pattern);
+
+  const relative = path.relative(allowed, patternDir);
+
+  return (
+    relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative)
+  );
 }
 
 export function findFile(dirPattern: string, filename: string): string[] {
@@ -83,18 +105,16 @@ export function findFile(dirPattern: string, filename: string): string[] {
 
 export function resolveFilePath(
   filename: string,
-  directory: string | undefined,
   keywords: Record<string, string> = {},
 ): FileResolution {
   // filename is an Absolute Path case
   if (path.isAbsolute(filename)) {
     return {
-      statusCode: 200,
-      filename,
-      folders: [filename],
+      statusCode: 400,
+      error: "Absolute filenames are not supported",
     };
   }
-  const dataRoot = config.dataDirectory;
+  const dataRoot = config.allowedDataDirectory;
   const dirPattern = config.directoryPathPattern;
   if (!dataRoot) {
     return {
@@ -102,19 +122,11 @@ export function resolveFilePath(
       error: "Data root directory is not configured",
     };
   }
-  // "directory" is specified case
-  if (typeof directory === "string") {
-    return {
-      statusCode: 200,
-      filename,
-      folders: [path.join(dataRoot, directory)],
-    };
-  }
-  // else : directoryPattern must be configurad
+  // directoryPattern must be configurad
   if (!dirPattern) {
     return {
       statusCode: 400,
-      error: "Directory or directoryPathPattern must be specified",
+      error: "directoryPathPattern must be specified",
     };
   }
 

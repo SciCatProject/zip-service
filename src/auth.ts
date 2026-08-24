@@ -1,5 +1,6 @@
 import express from "express";
 import { config } from "./common/config";
+import { validateFilenames } from "./common/file_utils";
 import * as fs from "fs";
 import jwtLib from "jsonwebtoken";
 
@@ -10,7 +11,7 @@ import path from "path";
 
 export const hasFileAccess = async (
   req: express.Request,
-  absoluteFileNames: string[],
+  fileNames: string[],
   dataset: string | undefined,
 ): Promise<Global.AuthResponse> => {
   const { jwtSecret } = config;
@@ -39,15 +40,13 @@ export const hasFileAccess = async (
   }
 
   logger.logInfo("Request user: ", { user: jwtDecoded.username });
-
   const authRequest: Global.AuthRequest = {
     jwt: jwtDecoded,
     endpoint: req.originalUrl,
     httpMethod: req.method,
-    fileNames: absoluteFileNames,
+    fileNames: fileNames,
     dataset,
   };
-
   if (!authRequest.fileNames || authRequest.fileNames.length === 0) {
     return {
       hasAccess: false,
@@ -56,18 +55,14 @@ export const hasFileAccess = async (
       fileNames: [],
     };
   }
-  for (const fileName of absoluteFileNames) {
-    const directory = path.dirname(fileName);
-    if (!fs.existsSync(directory)) {
-      return {
-        hasAccess: false,
-        statusCode: 404,
-        error: `The directory ${directory} does not exist`,
-        fileNames: [],
-      };
-    }
+  if (!validateFilenames(fileNames)) {
+    return {
+      hasAccess: false,
+      statusCode: 404,
+      error: "The specified filenames are invalid",
+      fileNames: [],
+    };
   }
-
   const groups = jwtDecoded.groups;
   if (!groups) {
     return {
@@ -78,7 +73,6 @@ export const hasFileAccess = async (
     };
   }
   logger.logInfo("User Groups: ", { groups });
-
   if (!dataset) {
     const isAdmin = authRequest.jwt.groups.includes("admin");
     if (isAdmin) {
@@ -102,15 +96,28 @@ export const hasFileAccess = async (
       );
       const hasOwnerGroup = authRequest.jwt.groups?.includes(value.ownerGroup);
       keywords = getDatasetKeywords(value);
-      if (isPublic || isAdmin || hasAccessGroup || hasOwnerGroup) {
-        return true;
-      }
+      if (isPublic || isAdmin || hasAccessGroup || hasOwnerGroup) return true;
+
       return false;
     })
     .catch((err) => {
       logger.logError("Error caught at access validation", { err });
       return false;
     });
+
+  // Validate Collected keywords
+  // avoid ".." in values
+  for (const [key, value] of Object.entries(keywords)) {
+    if (typeof value == "string" && value.includes("..")) {
+      return {
+        hasAccess: false,
+        statusCode: 400,
+        error: `value of ${key} is ambigious: contains '..' !`,
+        fileNames: [],
+        keywords: valid ? keywords : {},
+      };
+    }
+  }
 
   return {
     hasAccess: valid,
@@ -143,4 +150,22 @@ function getDatasetKeywords(dataset: OutputDatasetDto) {
   }
 
   return keywords;
+}
+
+function validateKeywords(
+  keywords: Record<string, string>,
+): Record<string, any> {
+  // avoid ".." in values
+  for (const [key, value] of Object.entries(keywords)) {
+    if (value.includes("..")) {
+      return {
+        status: 400,
+        error: `value of ${key} is ambigious: contains '..' !`,
+      };
+    }
+  }
+  return {
+    error: undefined,
+    keywords: keywords,
+  };
 }

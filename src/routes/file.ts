@@ -4,6 +4,7 @@ import { config } from "../common/config";
 import {
   FileLink,
   FileResolution,
+  validateFilenames,
   resolveFilePath,
 } from "../common/file_utils";
 import { hasFileAccess } from "../auth";
@@ -24,7 +25,6 @@ router.get("/", (req, res) => {
 router.post("/", async (req, res) => {
   cleanupExpiredFileLinks();
 
-  const bodyDirectory = req.body.directory;
   const bodyFileNames = getBodyFileNames(req.body);
 
   if (!Array.isArray(bodyFileNames) || bodyFileNames.length !== 1) {
@@ -41,13 +41,17 @@ router.post("/", async (req, res) => {
 
   const bodyFileName = bodyFileNames[0];
 
-  if (
-    !path.isAbsolute(bodyFileName) &&
-    typeof bodyDirectory !== "string" &&
-    !config.directoryPathPattern
-  ) {
+  if (path.isAbsolute(bodyFileName)) {
     return res.status(400).send({
-      error: "Directory or directoryPathPattern must be specified",
+      error: "Invalid filename, Absolute Path was given",
+    });
+  } else if (!validateFilenames([bodyFileName])) {
+    return res.status(400).send({
+      error: "Invalid filename, Contains '..' ",
+    });
+  } else if (!config.directoryPathPattern) {
+    return res.status(400).send({
+      error: "directoryPathPattern must be specified",
     });
   }
 
@@ -127,69 +131,28 @@ function openFile(req: express.Request, res: express.Response) {
 
 async function createFileLink(req: express.Request, res: express.Response) {
   const datasetId = req.body.dataset || req.body.datasetId;
-  const directory =
-    typeof req.body.directory === "string" ? req.body.directory : undefined;
   const filename = getBodyFileNames(req.body)[0] as string;
   const fileAction =
     typeof req.body.fileAction === "string" ? req.body.fileAction : "";
 
-  if (shouldResolveFromDataset(filename, directory)) {
-    const authResponse = await hasFileAccess(req, [filename], datasetId);
-
-    if (!authResponse.hasAccess) {
-      logger.logError("Error accessing file", {
-        statusCode: authResponse.statusCode,
-        error: authResponse.error,
-      });
-
-      return res.status(authResponse.statusCode).send({
-        error: authResponse.error,
-      });
-    }
-
-    return createResolvedFileLink(
-      req,
-      res,
-      datasetId,
-      directory,
-      filename,
-      authResponse.keywords ?? {},
-      undefined,
-      fileAction,
-    );
-  }
-
-  const resolution = resolveFilePath(filename, directory);
-  if (resolution.error) {
-    return res.status(resolution.statusCode).send({
-      error: resolution.error,
-      folders: resolution.folders,
+  const authResponse = await hasFileAccess(req, [filename], datasetId);
+  if (!authResponse.hasAccess) {
+    logger.logError("Error accessing file", {
+      statusCode: authResponse.statusCode,
+      error: authResponse.error,
     });
-  }
-  const filepath = path.join(resolution.folders?.[0], filename);
-  if (!filepath) {
-    return res.status(500).send({
-      error: "File path could not be resolved",
+
+    return res.status(authResponse.statusCode).send({
+      error: authResponse.error,
     });
-  }
-  const { hasAccess, statusCode, error } = await hasFileAccess(
-    req,
-    [filepath],
-    datasetId,
-  );
-  if (!hasAccess) {
-    logger.logError("Error accessing file", { statusCode, error });
-    return res.status(statusCode).send({ error });
   }
 
   return createResolvedFileLink(
     req,
     res,
     datasetId,
-    directory,
     filename,
-    undefined,
-    filepath,
+    authResponse.keywords ?? {},
     fileAction,
   );
 }
@@ -198,19 +161,11 @@ function createResolvedFileLink(
   req: express.Request,
   res: express.Response,
   datasetId: string,
-  directory: string | undefined,
   filename: string,
   keywords?: Record<string, string>,
-  resolvedFilepath?: string,
   fileAction = "",
 ) {
-  const resolution: FileResolution = resolvedFilepath
-    ? {
-        statusCode: 200,
-        filename,
-        folders: [path.dirname(resolvedFilepath)],
-      }
-    : resolveFilePath(filename, directory, keywords);
+  const resolution: FileResolution = resolveFilePath(filename, keywords);
 
   if (resolution.error) {
     return res.status(resolution.statusCode).send({
@@ -240,7 +195,6 @@ function createResolvedFileLink(
     filename,
     filepath,
     datasetId,
-    directory,
     token,
     expiresAt: Date.now() + fileLinkRetentionMillis,
   });
@@ -414,14 +368,6 @@ function cleanupExpiredFileLinks() {
       fileLinks.delete(id);
     }
   }
-}
-
-function shouldResolveFromDataset(filename: string, directory: unknown) {
-  return (
-    !path.isAbsolute(filename) &&
-    typeof directory !== "string" &&
-    Boolean(config.directoryPathPattern)
-  );
 }
 
 function getBodyFileNames(body: Record<string, unknown>) {

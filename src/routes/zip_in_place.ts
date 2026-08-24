@@ -1,11 +1,11 @@
-import express from "express";
-import * as fs from "fs";
 import archiver from "archiver";
+import express from "express";
+import path from "path";
+import * as fs from "fs";
 import { config } from "../common/config";
-import { resolveFilePath } from "../common/file_utils";
+import { validateFilenames, resolveFilePath } from "../common/file_utils";
 import { hasFileAccess } from "../auth";
 import { logger } from "@user-office-software/duo-logger";
-import path from "path";
 import { v4 as uuidv4 } from "uuid";
 
 export const router = express.Router();
@@ -22,7 +22,7 @@ function resolvePaths(
 ): ResolvedPaths {
   const absPaths: string[] = [];
   for (const file of filenames) {
-    const resolvedFile = resolveFilePath(file, undefined, keywords);
+    const resolvedFile = resolveFilePath(file, keywords);
     if (resolvedFile.error) {
       return {
         statusCode: resolvedFile.statusCode,
@@ -39,11 +39,7 @@ function resolvePaths(
       };
     }
 
-    absPaths.push(
-      path.isAbsolute(resolvedFile.filename)
-        ? resolvedFile.filename
-        : path.join(resolvedFile.folders[0], resolvedFile.filename),
-    );
+    absPaths.push(path.join(resolvedFile.folders[0], resolvedFile.filename));
   }
   return {
     statusCode: 200,
@@ -53,15 +49,16 @@ function resolvePaths(
 
 /* POST zip */
 router.post("/", async function (req: express.Request, res: express.Response) {
-  const bodyDirectory = req.body.directory;
   const bodyFileNames = req.body.files;
   const datasetId = req.body.dataset;
 
+  if (!validateFilenames(bodyFileNames))
+    return res.status(400).send({
+      error: "Invalid filenames, Contains '..' ",
+    });
+
   let absoluteFilePaths: string[] = [];
-  if (
-    typeof bodyDirectory !== "string" &&
-    Boolean(config.directoryPathPattern)
-  ) {
+  if (config.directoryPathPattern) {
     // Resolve filePaths from dataset
     const authResponse = await hasFileAccess(req, bodyFileNames, datasetId);
     if (!authResponse.hasAccess) {
@@ -80,20 +77,9 @@ router.post("/", async function (req: express.Request, res: express.Response) {
     }
     absoluteFilePaths = resolvedPaths.paths;
   } else {
-    absoluteFilePaths = transformPaths(bodyDirectory, bodyFileNames);
-    logger.logInfo("Request has been submitted", {
-      fileNames: absoluteFilePaths,
-    });
-    const { hasAccess, statusCode, error } = await hasFileAccess(
-      req,
-      absoluteFilePaths,
-      datasetId,
-    );
-
-    if (!hasAccess) {
-      logger.logError(`error zipping files ${error}`, {});
-      return res.render("error", { statusCode, error });
-    }
+    return res
+      .status(400)
+      .send("No data Directory Pattern configuration given");
   }
 
   const files = absoluteFilePaths;
@@ -169,10 +155,3 @@ router.post("/", async function (req: express.Request, res: express.Response) {
     return read;
   }
 });
-const transformPaths = (directory: string, fileNames: string[]) => {
-  const absoluteFileNames = fileNames.map((fileName) =>
-    path.isAbsolute(fileName) ? fileName : path.join(directory, fileName),
-  );
-
-  return absoluteFileNames;
-};

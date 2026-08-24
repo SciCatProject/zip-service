@@ -12,7 +12,7 @@ import { router as zipInPlaceRouter } from "./routes/zip_in_place";
 import { router as downloadRouter } from "./routes/download";
 import { router as fileRouter } from "./routes/file";
 import { router as indexRouter } from "./routes/index";
-import { router as uploadRouter } from "./routes/upload";
+// import { router as uploadRouter } from "./routes/upload";
 import { logger } from "@user-office-software/duo-logger";
 import { configureLogger } from "./common/configureLogger";
 
@@ -27,7 +27,7 @@ app.use(
       "Content-Length",
       "Content-Range",
     ],
-  })
+  }),
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -44,14 +44,14 @@ app.use(
     resave: false,
     saveUninitialized: true,
     name: "zip-service.sid",
-  })
+  }),
 );
 app.use(
   fileUpload({
     useTempFiles: true,
     tempFileDir: config.zipDir,
     debug: true,
-  })
+  }),
 );
 
 app.use("/", indexRouter);
@@ -59,13 +59,13 @@ app.use("/zip", zipRouter);
 app.use("/zip_in_place", zipInPlaceRouter);
 app.use("/download", downloadRouter);
 app.use("/file", fileRouter);
-app.use("/upload", uploadRouter);
+// app.use("/upload", uploadRouter);
 
 configureLogger(
   config.graylogEnabled,
   config.graylogServer,
   config.graylogPort,
-  config.environment
+  config.environment,
 );
 
 // Delete all zip files in config.path_to_zipped_files older than one hour.
@@ -86,7 +86,10 @@ const deleteZipFiles = () => {
           if (now > endTime) {
             return rimraf(path.join(config.zipDir, file), function (err3) {
               if (err3) {
-                logger.logError("Error occured while trying to delete file: " + file, { err3 });
+                logger.logError(
+                  "Error occured while trying to delete file: " + file,
+                  { err3 },
+                );
 
                 return;
               }
@@ -117,9 +120,7 @@ function getForwardedPrefix(req: express.Request) {
     ? firstPrefix
     : `/${firstPrefix}`;
 
-  return prefixedPath.endsWith("/")
-    ? prefixedPath.slice(0, -1)
-    : prefixedPath;
+  return prefixedPath.endsWith("/") ? prefixedPath.slice(0, -1) : prefixedPath;
 }
 
 export default app;
