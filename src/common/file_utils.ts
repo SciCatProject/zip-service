@@ -52,7 +52,7 @@ export function findFile(dirPattern: string, filename: string): string[] {
   try {
     if (stars === 0) {
       const filePath = path.join(dirPattern, filename);
-      return fs.existsSync(filePath) ? [filePath] : [];
+      return fs.existsSync(filePath) ? [path.dirname(filePath)] : [];
     }
 
     const [prefix, suffix] = dirPattern.split("*");
