@@ -10,22 +10,45 @@ import { v4 as uuidv4 } from "uuid";
 
 export const router = express.Router();
 
+interface ResolvedPaths {
+  statusCode: number;
+  paths: string[];
+  error?: string;
+}
+
 function resolvePaths(
-  res: express.Response,
   filenames: string[],
-  keywords: Record<string, string>,
-) {
-  const absPaths = [];
-  for (const file in filenames) {
+  keywords: Record<string, string> = {},
+): ResolvedPaths {
+  const absPaths: string[] = [];
+  for (const file of filenames) {
     const resolvedFile = resolveFilePath(file, undefined, keywords);
     if (resolvedFile.error) {
-      res.statusCode = resolvedFile.statusCode;
-      res.send(resolvedFile.error);
-      return [];
+      return {
+        statusCode: resolvedFile.statusCode,
+        paths: [],
+        error: resolvedFile.error,
+      };
     }
-    absPaths.push(path.join(resolvedFile.folders[0], resolvedFile.filename));
+
+    if (!resolvedFile.filename || !resolvedFile.folders?.[0]) {
+      return {
+        statusCode: 500,
+        paths: [],
+        error: "File path could not be resolved",
+      };
+    }
+
+    absPaths.push(
+      path.isAbsolute(resolvedFile.filename)
+        ? resolvedFile.filename
+        : path.join(resolvedFile.folders[0], resolvedFile.filename),
+    );
   }
-  return absPaths;
+  return {
+    statusCode: 200,
+    paths: absPaths,
+  };
 }
 
 /* POST zip */
@@ -34,7 +57,7 @@ router.post("/", async function (req: express.Request, res: express.Response) {
   const bodyFileNames = req.body.files;
   const datasetId = req.body.dataset;
 
-  let absoluteFilePaths = [];
+  let absoluteFilePaths: string[] = [];
   if (
     typeof bodyDirectory !== "string" &&
     Boolean(config.directoryPathPattern)
@@ -51,7 +74,11 @@ router.post("/", async function (req: express.Request, res: express.Response) {
         error: authResponse.error,
       });
     }
-    absoluteFilePaths = resolvePaths(res, bodyFileNames, authResponse.keywords);
+    const resolvedPaths = resolvePaths(bodyFileNames, authResponse.keywords);
+    if (resolvedPaths.error) {
+      return res.status(resolvedPaths.statusCode).send(resolvedPaths.error);
+    }
+    absoluteFilePaths = resolvedPaths.paths;
   } else {
     absoluteFilePaths = transformPaths(bodyDirectory, bodyFileNames);
     logger.logInfo("Request has been submitted", {
@@ -122,9 +149,12 @@ router.post("/", async function (req: express.Request, res: express.Response) {
     });
     archive.finalize();
   } catch (error) {
-    res.statusCode = 500;
-    res.send(`The files could not be zipped ${error.message}`);
-    return;
+    const message = error instanceof Error ? error.message : "Unknown error";
+    logger.logError("The files could not be zipped", { error });
+    if (!res.headersSent) {
+      return res.status(500).send(`The files could not be zipped ${message}`);
+    }
+    res.end();
   }
 
   function makeReadStream(filepath: string) {
