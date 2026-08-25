@@ -15,6 +15,7 @@ import { router as indexRouter } from "./routes/index";
 // import { router as uploadRouter } from "./routes/upload";
 import { logger } from "@user-office-software/duo-logger";
 import { configureLogger } from "./common/configureLogger";
+import { getRouteBasePath } from "./common/routing";
 
 const app = express();
 app.set("views", path.join(__dirname, "views"));
@@ -33,7 +34,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use((req, res, next) => {
-  res.locals.routeBasePath = getForwardedPrefix(req);
+  res.locals.routeBasePath = getRouteBasePath();
   next();
 });
 
@@ -104,23 +105,5 @@ const deleteZipFiles = () => {
   }
 };
 setInterval(deleteZipFiles, config.zipRetentionMillis || 60 * 60 * 1000);
-
-function getForwardedPrefix(req: express.Request) {
-  const forwardedPrefix = req.headers["x-forwarded-prefix"];
-  const prefix = Array.isArray(forwardedPrefix)
-    ? forwardedPrefix[0]
-    : forwardedPrefix || "";
-  const firstPrefix = prefix.split(",")[0].trim();
-
-  if (!firstPrefix || firstPrefix === "/") {
-    return "";
-  }
-
-  const prefixedPath = firstPrefix.startsWith("/")
-    ? firstPrefix
-    : `/${firstPrefix}`;
-
-  return prefixedPath.endsWith("/") ? prefixedPath.slice(0, -1) : prefixedPath;
-}
 
 export default app;

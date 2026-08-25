@@ -7,18 +7,18 @@ import { config } from "./config";
 let datasetsApiInstance: DatasetsV4Api | null = null;
 
 export function scicatDataSetAPI(): DatasetsV4Api {
-  const { basePath, accessToken } = config;
+  const { scicatApiBasePath, scicatApiAccessToken } = config;
 
   if (!datasetsApiInstance) {
-    if (!basePath || !accessToken) {
+    if (!scicatApiBasePath || !scicatApiAccessToken) {
       throw new Error(
         "SciCat API configuration is missing: Check SCICAT_API_BASE_PATH and SCICAT_API_ACCESS_TOKEN.",
       );
     }
 
     const apiConfig = new Configuration({
-      basePath,
-      accessToken,
+      basePath: scicatApiBasePath,
+      accessToken: scicatApiAccessToken,
     });
 
     datasetsApiInstance = new DatasetsV4Api(apiConfig);

@@ -11,6 +11,7 @@ import { hasFileAccess } from "../auth";
 import { logger } from "@user-office-software/duo-logger";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
+import { getPublicOrigin, getRouteBasePath } from "../common/routing";
 
 export const router = express.Router();
 
@@ -119,7 +120,10 @@ function openFile(req: express.Request, res: express.Response) {
     return res.status(403).send("This file link is no longer valid");
   }
 
-  const streamUrl = createFileAccessUrl(req, "stream", fileData.token, true);
+  const streamUrl = createFileAccessUrl("stream", fileData.token, true);
+  if (!streamUrl) {
+    return res.status(500).send("Service public origin is not configured");
+  }
 
   const hdfUrl = createHdfViewUrl(streamUrl, fileData.filename);
   if (!hdfUrl) {
@@ -199,9 +203,9 @@ function createResolvedFileLink(
     expiresAt: Date.now() + fileLinkRetentionMillis,
   });
 
-  const downloadUrl = createFileAccessUrl(req, "download", token);
-  const streamUrl = createFileAccessUrl(req, "stream", token);
-  const openUrl = createFileAccessUrl(req, "open", token);
+  const downloadUrl = createFileAccessUrl("download", token);
+  const streamUrl = createFileAccessUrl("stream", token);
+  const openUrl = createFileAccessUrl("open", token);
 
   if (fileAction === "Download") {
     return res.redirect(303, downloadUrl);
@@ -287,19 +291,19 @@ function sendResolvedFileHead(
 }
 
 function createFileAccessUrl(
-  req: express.Request,
   action: "download" | "stream" | "open",
   token: string,
   absolute = false,
 ) {
   const pathname = `/file/${action}?token=${token}`;
-  const prefixedPath = withForwardedPrefix(req, pathname);
+  const prefixedPath = `${getRouteBasePath()}${pathname}`;
 
   if (!absolute) {
     return prefixedPath;
   }
 
-  return withRequestOrigin(req, prefixedPath);
+  const origin = getPublicOrigin();
+  return origin ? `${origin}${prefixedPath}` : null;
 }
 
 function createHdfViewUrl(fileUrl: string, filename?: string) {
@@ -312,36 +316,6 @@ function createHdfViewUrl(fileUrl: string, filename?: string) {
     url.searchParams.set("label", filename);
   }
   return url.toString();
-}
-
-function withForwardedPrefix(req: express.Request, pathname: string) {
-  const forwardedPrefix = req.headers["x-forwarded-prefix"];
-  const prefix = Array.isArray(forwardedPrefix)
-    ? forwardedPrefix[0]
-    : forwardedPrefix || "";
-  const normalizedPrefix = prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;
-  return `${normalizedPrefix}${pathname}`;
-}
-
-function withRequestOrigin(req: express.Request, pathname: string) {
-  const protocol =
-    getFirstHeader(req, "x-forwarded-proto") || req.protocol || "http";
-  const host = getFirstHeader(req, "x-forwarded-host") || req.get("host");
-  if (!host) {
-    return pathname;
-  }
-  return `${protocol}://${host}${pathname}`;
-}
-
-function getFirstHeader(req: express.Request, headerName: string) {
-  const value = req.headers[headerName];
-  if (Array.isArray(value)) {
-    return value[0];
-  }
-  if (typeof value === "string") {
-    return value.split(",")[0].trim();
-  }
-  return "";
 }
 
 function getFileLink(req: express.Request) {
