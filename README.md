@@ -4,11 +4,13 @@
 
 # Description
 
-A service for zipping and downloading a group of files with a common directory on the same machine as the service is running. Authorization is based on the properties username:string groups:string[] in the JWT.
+A service for zipping and downloading a group of files, or downloading/streaming a single file, from a directory tree on the same machine as the service is running. Authorization is based on the property `groups:string[]` in the JWT, checked against a SciCat dataset's `accessGroups`/`ownerGroup`/`isPublished` fields.
+
+The directory containing a dataset's files is not supplied by the client. Instead, it is resolved server-side from `directoryPathPattern` (see [File path resolution](#file-path-resolution)) using values read off the SciCat dataset record, so the caller only ever supplies file names, never directories.
 
 # Install
 
-`docker-compose up` or `npm install && npm start`
+`npm install && npm start`
 
 # Image creation
 
@@ -33,42 +35,89 @@ We hope to automate the image release in the near future.
 
 ## main endpoint
 
-The main endpoint will present a default form that can be used to test the download.
-The files presented in the form are included in the image available on the repository, and they are available just for testing.
-This form is provided for testing and has to be screened and monitored for security purposes.
+The main endpoint (`/`) presents links to the zip form (`/zip`) and single-file form (`/file`), which can be used to test downloading. The files presented in these forms are included in the image available on the repository, and they are available just for testing.
+These forms are provided for testing and have to be screened and monitored for security purposes.
 
 ## zip with download
 
-Zip requests are sent as POST to `/zip`, which redirect to a download progress page. The post body should have the following format:
+Zip requests are sent as POST to `/zip`, which redirects to a download progress page. The post body should have the following format:
 
 ```json
 data: {
   "jwt": "token",
-  "directory": "/path/to/files",
-  "files": ["file1","file2","file3"]
+  "dataset": "<datasetPid>",
+  "files": ["file1", "file2", "file3"]
 }
 ```
 
-/zip shows a page with a progress bar, resulting in a downloadable zip-file.
+The directory each file lives in is resolved automatically from `dataset` (see [File path resolution](#file-path-resolution)); the request no longer accepts a `directory` field. `/zip` shows a page with a progress bar, polled from `GET /zip/status`, resulting in a downloadable zip file served from `/download/<zipFileName>`.
 
 ## zip in place
 
-While [zip with download](zip-with-download) is a two step process (the file is zipped to a temporary directory on the server and then downloaded from the browser), another route, /zip_in_place exists which zips the payload in the same time as downloading.
+While [zip with download](#zip-with-download) is a two step process (the file is zipped to a temporary directory on the server and then downloaded from the browser), another route, `/zip_in_place`, exists which zips the payload at the same time as downloading it. It accepts the same POST body as `/zip`.
 
-# local.config.json
+## single file access
 
-Required in the root directory.
+`POST /file` requests a link to a single file:
+
+```json
+data: {
+  "jwt": "token",
+  "dataset": "<datasetPid>",
+  "fileName": "file1"
+}
+```
+
+On success this returns a short-lived, single-use token that lasts for `fileLinkRetentionMillis` and three URLs built from it:
+
+| URL | Behavior |
+| --- | --- |
+| `GET /file/download?token=...` | Downloads the file (`Content-Disposition: attachment`), with byte-range support. |
+| `GET /file/stream?token=...` | Streams the file inline (`Content-Disposition: inline`), with byte-range support. |
+| `GET /file/open?token=...` | Redirects to `hdfViewServiceUrl`, passing the stream URL so an HDF5/NeXus viewer can render the file. Requires `publicOrigin` to be configured. |
+
+`HEAD` is also supported on `/file/download` and `/file/stream`. Passing `fileAction: "Download"` or `fileAction: "Open"` in the `POST /file` body redirects directly to the corresponding URL instead of returning JSON.
+
+# File path resolution
+
+Rather than trusting a client-supplied directory, the service resolves each file's directory from:
+
+- `allowedDataDirectory` — the root directory all resolved paths must stay under.
+- `directoryPathPattern` — a path template with `{keyword}` placeholders (e.g. `{instrumentIds[0]}`), and at most one `*` wildcard segment matched against the subdirectories of `allowedDataDirectory`.
+- `requiredKeywords` — the list of placeholders (matching those used in `directoryPathPattern`) whose values are read off the SciCat dataset record returned for the requested `dataset` (array fields are indexed with `[n]`, e.g. `instrumentIds[0]`).
+
+Every resolved keyword value is validated to stay within `allowedDataDirectory` and must not contain `..`. 
+
+## Specific facility handling:
+- When `facility` is `"ILL"`, keyword values are additionally normalized (e.g. `proposalId` values are prefixed with `exp_`, `type` values starting with `raw` become `rawdata`, `instrumentId` values are lower-cased) to match ILL's on-disk directory naming.
+
+# config/config.json
+
+Required in the root directory (loaded from `config/config.json`).
 | property key | Data type | Description |
 | --------------------- | ----------- | ----------- |
-| zipDir | string | directory where generated zip files are stored. Note that zip-files are deleted periodically |
-| zipRetentionMillis | number | The number of milliseconds zip files are stored before they're deleted |
-| sessionSecret | string | Used to sign session ids to detect client side tampering |
-| facility | string | Different facilities have different ways of authorizing file access. This property is used to determine which mechanism to use |
-| dramDirectory | string | Upload directory? |
-| testData | Object | Optional. Default input values at the index route |
-| testData.jwt | string | Optional. Default jwt |
-| testData.directory | string | Optional. Default directory |
+| routeBasePath | string | Optional. Path prefix the service is mounted under behind a reverse proxy (e.g. `/zip-service`). defaults to `/` |
+| publicOrigin | string | The service's own trusted public origin (scheme + host, e.g. `https://zip-service.example.org`).|
+| hdfViewServiceUrl | string | Base URL of the HDF5/NeXus view service that `GET /file/open` redirects to. |
+| allowedDataDirectory | string | Root directory that all resolved file paths must stay under. |
+| directoryPathPattern | string | Path template used to resolve a dataset's file directory. Supports `{keyword}` placeholders and a single `*` wildcard segment. See [File path resolution](#file-path-resolution). |
+| zipDir | string | Directory where generated zip files are stored. Note that zip-files are deleted periodically. |
+| zipRetentionMillis | number | The number of milliseconds zip files are stored before they're deleted. |
+| fileLinkRetentionMillis | number | The number of milliseconds a single-file link/token (from `POST /file`) remains valid. |
+| jwtSecret | string | Secret used to sign/verify the JWT clients authenticate with. |
+| sessionSecret | string | Used to sign session ids to detect client side tampering. |
+| facility | string | Different facilities have different ways of authorizing file access and naming data directories. This property is used to determine which mechanism/normalization to use (e.g. `"ILL"`). |
+| requiredKeywords | string[] | Placeholder names (matching `directoryPathPattern`) whose values are read from the SciCat dataset record. |
+| scicatApiBasePath | string | Base URL of the SciCat API used to look up dataset access rights. |
+| scicatApiAccessToken | string | Access token used to authenticate against the SciCat API. |
+| graylogEnabled | boolean | Whether to ship logs to Graylog. |
+| graylogServer | string | Graylog server hostname. |
+| graylogPort | number | Graylog GELF port. |
+| environment | string | Deployment environment name, passed to the logger. |
+| testData | Object | Optional. Default input values at the index/zip/file forms. |
+| testData.jwt | string | Optional. Default jwt. |
 | testData.files | string[] | Optional. Default files. |
+| dramDirectory | string | Deprecated. Upload directory used by the (currently disabled) `/upload` route. |
 
 Example data
 
@@ -76,13 +125,20 @@ Example data
 {
   "zipDir": "/tmpZip",
   "zipRetentionMillis": 3600000,
+  "fileLinkRetentionMillis": 3600000,
   "jwtSecret": "secret123",
   "sessionSecret": "fj9832mnsaf3j9adsa",
-  "facility": "maxiv",
-  "dramDirectory": "uploads/",
+  "facility": "ILL",
+  "allowedDataDirectory": "/data",
+  "directoryPathPattern": "/data/{sourceFolder}/{type}",
+  "requiredKeywords": ["sourceFolder", "type"],
+  "hdfViewServiceUrl": "https://hdf-viewer.example.org",
+  "routeBasePath": "",
+  "publicOrigin": "https://zip-service.example.org",
+  "scicatApiBasePath": "https://scicat.example.org",
+  "scicatApiAccessToken": "<scicatServiceAccountToken>",
   "testData": {
     "jwt": "<jwtToken>",
-    "directory": "<testFileDirectory>",
     "files": ["<testFileName1>", "<testFileName2>", "<testFileName3>"]
   }
 }

@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width,initial-scale=1,shrink-to-fit=no"
     />
-    <link rel="stylesheet" type="text/css" href="/css/index.css" />
+    <link rel="stylesheet" type="text/css" href="<%= routeBasePath %>/css/index.css" />
     <title>zip-service</title>
   </head>
   <body>
@@ -20,80 +20,19 @@
           <p>
             UI for testing zip-service. While implementation details of file
             authorization may vary between facilities, a valid jwt (JSON Web
-            Token) is required for all of them. This can be specified either as
-            a cookie (all requests), a url parameter (GET) or in the body
-            (POST).
+            Token) is required. This can be specified either as a cookie, a url
+            parameter for download requests, or in a POST body.
           </p>
           <p>
-            The default value of <code>directory</code> corresponds to the root
-            of the scientific data directory tree. The specified files must all be directly under this directory.
-          </p>
-          <p>
-            By submitting the form on the right, a http <code>POST</code> is made to <code>/zip</code>, with the specified jwt, directory and file array as its body. The jwt can be omitted if already present as a cookie. If not, one has to be generated using the same secret as the zip-service, and a JSON payload containing the keys necessary for authorization.
+            Use the zip form to create a zip archive from several files, or the
+            file form to create a temporary download/stream link for one file.
           </p>
         </div>
-        <form action="zip" method="POST" class="flex-panel-item">
-          <div class="table-flex-container">
-            <div>JWT</div
-            ><input
-              placeholder="Not needed if jwt cookie is present"
-              type="text"
-              name="jwt"
-              class="input"
-            />
-          </div>
-          <div class="table-flex-container">
-            <div>Directory</div>
-            <input
-              type="text"
-              name="directory"
-              class="input"
-              value="<%= directory %>"
-            />
-          </div>
-          <div class="table-flex-container">
-            <div>Dataset PID</div>
-            <input
-              type="text"
-              name="dataset"
-              class="input"
-              value="<%= dataset %>"
-            />
-          </div>
-          <div class="table-flex-container">
-            <div>File 1</div>
-            <input
-              type="text"
-              name="files[0]"
-              class="input"
-              value="<%= file0 %>"
-            />
-          </div>
-          <div class="table-flex-container">
-            <div>File 2</div>
-            <input
-              type="text"
-              class="input"
-              name="files[1]"
-              value="<%= file1 %>"
-            />
-          </div>
-          <div class="table-flex-container">
-            <div>File 3</div>
-            <input
-              type="text"
-              name="files[2]"
-              class="input"
-              value="<%= file2 %>"
-            />
-          </div>
-          <div class="table-flex-container">
-            <input type="submit" value="Execute" />
-          </div>
-          <div class="table-flex-container">
-            <input type="submit" value="Execute In-Place" formaction="zip_in_place" />
-          </div>
-        </form>
+        <div class="flex-panel-item form-stack">
+          <h3>Forms</h3>
+          <p><a class="button-link" href="<%= routeBasePath %>/zip">Zip files</a></p>
+          <p><a class="button-link" href="<%= routeBasePath %>/file">Single file</a></p>
+        </div>
       </div>
     </div>
   </body>

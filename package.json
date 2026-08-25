@@ -1,6 +1,6 @@
 {
   "name": "zip-service",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "prebuild": "npx eslint --fix",
@@ -13,41 +13,35 @@
   },
   "dependencies": {
     "@scicatproject/scicat-sdk-ts-fetch": "^4.9.0",
+    "@user-office-software/duo-logger": "^2.2.1",
+    "archiver": "^5.3.1",
+    "cookie-parser": "~1.4.7",
+    "cors": "^2.8.6",
+    "ejs": "^3.1.10",
+    "express": "~4.22.2",
+    "express-fileupload": "^1.5.2",
+    "express-session": "^1.19.0",
+    "jsonwebtoken": "^9.0.3",
+    "node-stream-zip": "^1.16.0",
+    "uuid": "^11.1.1"
+  },
+  "snyk": true,
+  "overrides": {
+    "lodash": "^4.18.1"
+  },
+  "devDependencies": {
     "@types/archiver": "^5.3.1",
     "@types/cookie-parser": "^1.4.3",
     "@types/cors": "^2.8.12",
     "@types/express": "^4.17.21",
     "@types/express-fileupload": "^1.2.2",
     "@types/express-session": "^1.17.4",
-    "@types/jsonwebtoken": "^8.5.8",
+    "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^20.11.25",
-    "@types/rimraf": "^3.0.1",
-    "@user-office-software/duo-logger": "^2.2.1",
-    "archiver": "^5.3.1",
-    "body-parser": "^1.20.0",
-    "cookie-parser": "~1.4.7",
-    "cors": "^2.8.5",
-    "debug": "~2.6.9",
-    "ejs": "^3.1.10",
-    "express": "~4.21.2",
-    "express-fileupload": "^1.4.0",
-    "express-session": "^1.18.1",
-    "fs": "^0.0.1-security",
-    "http-errors": "~1.8.1",
-    "jsonwebtoken": "^8.5.1",
-    "node-stream-zip": "^1.14.0",
-    "nodemon": "^3.1.0",
-    "progressbar.js": "^1.1.1",
-    "rimraf": "^2.7.1",
-    "sessions": "0.0.2",
-    "typescript": "^5.8.2",
-    "uuid": "^11.1.0"
-  },
-  "snyk": true,
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.19.0",
-    "@typescript-eslint/parser": "^4.19.0",
-    "eslint": "^7.22.0",
-    "ts-node-dev": "^2.0.0"
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.2"
   }
 }

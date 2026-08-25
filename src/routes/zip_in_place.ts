@@ -1,35 +1,90 @@
-import express from "express";
-import * as fs from "fs";
 import archiver from "archiver";
+import express from "express";
+import path from "path";
+import * as fs from "fs";
+import { config } from "../common/config";
+import { validateFilenames, resolveFilePath } from "../common/file_utils";
 import { hasFileAccess } from "../auth";
 import { logger } from "@user-office-software/duo-logger";
-import path from "path";
 import { v4 as uuidv4 } from "uuid";
 
 export const router = express.Router();
 
+interface ResolvedPaths {
+  statusCode: number;
+  paths: string[];
+  error?: string;
+}
+
+function resolvePaths(
+  filenames: string[],
+  keywords: Record<string, string> = {},
+): ResolvedPaths {
+  const absPaths: string[] = [];
+  for (const file of filenames) {
+    const resolvedFile = resolveFilePath(file, keywords);
+    if (resolvedFile.error) {
+      return {
+        statusCode: resolvedFile.statusCode,
+        paths: [],
+        error: resolvedFile.error,
+      };
+    }
+
+    if (!resolvedFile.filename || !resolvedFile.folders?.[0]) {
+      return {
+        statusCode: 500,
+        paths: [],
+        error: "File path could not be resolved",
+      };
+    }
+
+    absPaths.push(path.join(resolvedFile.folders[0], resolvedFile.filename));
+  }
+  return {
+    statusCode: 200,
+    paths: absPaths,
+  };
+}
+
 /* POST zip */
 router.post("/", async function (req: express.Request, res: express.Response) {
-  const bodyDirectory = req.body.directory;
   const bodyFileNames = req.body.files;
   const datasetId = req.body.dataset;
 
-  const absoluteFileNames = transformPaths(bodyDirectory, bodyFileNames);
-  logger.logInfo("Request has been submitted", {
-    fileNames: absoluteFileNames,
-  });
+  if (!validateFilenames(bodyFileNames))
+    return res.status(400).send({
+      error: "Invalid filenames, Contains '..' ",
+    });
 
-  const { hasAccess, statusCode, error, fileNames } = await hasFileAccess(
-    req,
-    absoluteFileNames,
-    datasetId
-  );
-  const readOpts = { highWaterMark: Math.pow(2, 20) };
+  let absoluteFilePaths: string[] = [];
+  if (config.directoryPathPattern) {
+    // Resolve filePaths from dataset
+    const authResponse = await hasFileAccess(req, bodyFileNames, datasetId);
+    if (!authResponse.hasAccess) {
+      logger.logError("Error accessing files", {
+        statusCode: authResponse.statusCode,
+        error: authResponse.error,
+      });
 
-  if (!hasAccess) {
-    logger.logError(`error zipping file ${error}`, {});
-    return res.render("error", { statusCode, error });
+      return res.status(authResponse.statusCode).send({
+        error: authResponse.error,
+      });
+    }
+    const resolvedPaths = resolvePaths(bodyFileNames, authResponse.keywords);
+    if (resolvedPaths.error) {
+      return res.status(resolvedPaths.statusCode).send(resolvedPaths.error);
+    }
+    absoluteFilePaths = resolvedPaths.paths;
+  } else {
+    return res
+      .status(400)
+      .send("No data Directory Pattern configuration given");
   }
+
+  const files = absoluteFilePaths;
+
+  const readOpts = { highWaterMark: Math.pow(2, 20) };
 
   try {
     // **
@@ -71,7 +126,7 @@ router.post("/", async function (req: express.Request, res: express.Response) {
 
     logger.logInfo(`zip file name ${zipFileName}`, {});
 
-    fileNames.map((file) => {
+    files.map((file) => {
       if (file.length == 0 || fs.lstatSync(file).isDirectory()) return;
 
       const read = makeReadStream(file);
@@ -80,9 +135,12 @@ router.post("/", async function (req: express.Request, res: express.Response) {
     });
     archive.finalize();
   } catch (error) {
-    res.statusCode = 500;
-    res.send(`The files could not be zipped ${error.message}`);
-    return;
+    const message = error instanceof Error ? error.message : "Unknown error";
+    logger.logError("The files could not be zipped", { error });
+    if (!res.headersSent) {
+      return res.status(500).send(`The files could not be zipped ${message}`);
+    }
+    res.end();
   }
 
   function makeReadStream(filepath: string) {
@@ -97,10 +155,3 @@ router.post("/", async function (req: express.Request, res: express.Response) {
     return read;
   }
 });
-const transformPaths = (directory: string, fileNames: string[]) => {
-  const absoluteFileNames = fileNames.map((fileName) =>
-    path.isAbsolute(fileName) ? fileName : path.join(directory, fileName)
-  );
-
-  return absoluteFileNames;
-};
