@@ -31,14 +31,12 @@ export function resolvePattern(
   pattern: string,
   keywords: Record<string, string>,
 ): string {
-  return pattern.replace(/\{([^}]+)\}/g, (_, key) => {
+  const resolved = pattern.replace(/\{([^}]+)\}/g, (_, key) => {
     try {
       const value = keywords[key];
       if (value === undefined) {
         throw new Error(`Missing keyword '${key}'`);
       }
-      if (!validateResolvedPattern(value))
-        throw new Error("The resolved path is not valid or unaccessable !");
       if (config.facility === "ILL") {
         if (key.startsWith("proposalId")) {
           return value.startsWith("internalUse") ? value : "exp_" + value;
@@ -53,6 +51,9 @@ export function resolvePattern(
       return undefined;
     }
   });
+  if (!resolved || !validateResolvedPattern(resolved))
+    throw new Error("The resolved path is not valid or unaccessable !");
+  return resolved;
 }
 
 export function validateResolvedPattern(pattern: string): boolean {
@@ -141,7 +142,6 @@ export function resolveFilePath(
         err instanceof Error ? err.message : "File path pattern is invalid",
     };
   }
-
   const matchedFolders = findFile(resolvedPattern, filename);
   if (matchedFolders.length === 0) {
     return {
