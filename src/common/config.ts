@@ -7,4 +7,5 @@ const configBuffer: string = fs.readFileSync(configFilePath, {
   flag: "r",
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const config: Record<string, any> = JSON.parse(configBuffer);

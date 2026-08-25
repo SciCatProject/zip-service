@@ -1,7 +1,6 @@
 import fileUpload from "express-fileupload";
 import session from "express-session";
 import fs from "fs";
-import rimraf from "rimraf";
 import { config } from "./common/config";
 import cors from "cors";
 import express from "express";
@@ -85,17 +84,21 @@ const deleteZipFiles = () => {
           const now = new Date().getTime();
           const endTime = new Date(stat.ctime).getTime() + 60 * 60 * 1000;
           if (now > endTime) {
-            return rimraf(path.join(config.zipDir, file), function (err3) {
-              if (err3) {
-                logger.logError(
-                  "Error occured while trying to delete file: " + file,
-                  { err3 },
-                );
+            return fs.rm(
+              path.join(config.zipDir, file),
+              { recursive: true, force: true },
+              function (err3) {
+                if (err3) {
+                  logger.logError(
+                    "Error occured while trying to delete file: " + file,
+                    { err3 },
+                  );
 
-                return;
-              }
-              logger.logInfo("successfully deleted", {});
-            });
+                  return;
+                }
+                logger.logInfo("successfully deleted", {});
+              },
+            );
           }
         });
       });

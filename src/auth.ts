@@ -1,13 +1,11 @@
 import express from "express";
 import { config } from "./common/config";
 import { validateFilenames } from "./common/file_utils";
-import * as fs from "fs";
 import jwtLib from "jsonwebtoken";
 
 import { logger } from "@user-office-software/duo-logger";
 import { scicatDataSetAPI } from "./common/scicatAPI";
 import { OutputDatasetDto } from "@scicatproject/scicat-sdk-ts-fetch/dist/models";
-import path from "path";
 
 export const hasFileAccess = async (
   req: express.Request,
@@ -87,7 +85,7 @@ export const hasFileAccess = async (
   }
 
   const valid = await dataSetAPI
-    .datasetsV4ControllerFindById({ pid: authRequest.dataset })
+    .datasetsV4ControllerFindByIdV4({ pid: authRequest.dataset })
     .then((value: OutputDatasetDto) => {
       const isPublic = value.isPublished;
       const isAdmin = authRequest.jwt.groups?.includes("admin");
@@ -150,22 +148,4 @@ function getDatasetKeywords(dataset: OutputDatasetDto) {
   }
 
   return keywords;
-}
-
-function validateKeywords(
-  keywords: Record<string, string>,
-): Record<string, any> {
-  // avoid ".." in values
-  for (const [key, value] of Object.entries(keywords)) {
-    if (value.includes("..")) {
-      return {
-        status: 400,
-        error: `value of ${key} is ambigious: contains '..' !`,
-      };
-    }
-  }
-  return {
-    error: undefined,
-    keywords: keywords,
-  };
 }
