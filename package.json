@@ -12,7 +12,7 @@
     "lint": "eslint --fix ."
   },
   "dependencies": {
-    "@scicatproject/scicat-sdk-ts-fetch": "^4.9.0",
+    "@scicatproject/scicat-sdk-ts-fetch": "^5.3.3",
     "@user-office-software/duo-logger": "^2.2.1",
     "archiver": "^5.3.1",
     "cookie-parser": "~1.4.7",
