@@ -3,7 +3,11 @@ import express from "express";
 import path from "path";
 import * as fs from "fs";
 import { config } from "../common/config";
-import { validateFilenames, resolveFilePath } from "../common/file_utils";
+import {
+  validateFilenames,
+  resolveFilePath,
+  KeywordValue,
+} from "../common/file_utils";
 import { hasFileAccess } from "../auth";
 import { logger } from "@user-office-software/duo-logger";
 import { v4 as uuidv4 } from "uuid";
@@ -18,7 +22,7 @@ interface ResolvedPaths {
 
 function resolvePaths(
   filenames: string[],
-  keywords: Record<string, string> = {},
+  keywords: Record<string, KeywordValue> = {},
 ): ResolvedPaths {
   const absPaths: string[] = [];
   for (const file of filenames) {

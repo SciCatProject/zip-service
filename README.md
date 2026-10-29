@@ -85,6 +85,7 @@ Rather than trusting a client-supplied directory, the service resolves each file
 - `allowedDataDirectory` — the root directory all resolved paths must stay under.
 - `directoryPathPattern` — a path template with `{keyword}` placeholders (e.g. `{instrumentIds[0]}`), and at most one `*` wildcard segment matched against the subdirectories of `allowedDataDirectory`.
 - `requiredKeywords` — the list of placeholders (matching those used in `directoryPathPattern`) whose values are read off the SciCat dataset record returned for the requested `dataset` (array fields are indexed with `[n]`, e.g. `instrumentIds[0]`).
+  A keyword without an index whose value is a list (e.g. `instrumentIds`) expands the pattern into one candidate directory per value (combined across all list keywords). The file is searched in every candidate directory: it must be found in exactly one, otherwise a `404` (not found) or `409` (found in several directories) is returned.
 
 Every resolved keyword value is validated to stay within `allowedDataDirectory` and must not contain `..`. 
 
@@ -107,7 +108,7 @@ Required in the root directory (loaded from `config/config.json`).
 | jwtSecret | string | Secret used to sign/verify the JWT clients authenticate with. |
 | sessionSecret | string | Used to sign session ids to detect client side tampering. |
 | facility | string | Different facilities have different ways of authorizing file access and naming data directories. This property is used to determine which mechanism/normalization to use (e.g. `"ILL"`). |
-| requiredKeywords | string[] | Placeholder names (matching `directoryPathPattern`) whose values are read from the SciCat dataset record. |
+| requiredKeywords | string[] | Placeholder names (matching `directoryPathPattern`) whose values are read from the SciCat dataset record. List values resolve to multiple candidate directories. |
 | scicatApiBasePath | string | Base URL of the SciCat API used to look up dataset access rights. |
 | scicatApiAccessToken | string | Access token used to authenticate against the SciCat API. |
 | graylogEnabled | boolean | Whether to ship logs to Graylog. |

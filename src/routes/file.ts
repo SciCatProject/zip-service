@@ -6,6 +6,7 @@ import {
   FileResolution,
   validateFilenames,
   resolveFilePath,
+  KeywordValue,
 } from "../common/file_utils";
 import { hasFileAccess } from "../auth";
 import { logger } from "@user-office-software/duo-logger";
@@ -179,7 +180,7 @@ function createResolvedFileLink(
   res: express.Response,
   datasetId: string,
   filename: string,
-  keywords?: Record<string, string>,
+  keywords?: Record<string, KeywordValue>,
   fileAction = "",
 ) {
   const resolution: FileResolution = resolveFilePath(filename, keywords);

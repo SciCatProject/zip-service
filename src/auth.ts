@@ -106,7 +106,8 @@ export const hasFileAccess = async (
   // Validate Collected keywords
   // avoid ".." in values
   for (const [key, value] of Object.entries(keywords)) {
-    if (typeof value == "string" && value.includes("..")) {
+    const values = Array.isArray(value) ? value : [value];
+    if (values.some((v) => typeof v == "string" && v.includes(".."))) {
       return {
         hasAccess: false,
         statusCode: 400,

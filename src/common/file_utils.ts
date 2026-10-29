@@ -27,33 +27,50 @@ export function validateFilenames(filenames: string[]): boolean {
   return true;
 }
 
+export type KeywordValue = string | string[];
+
+// May return multiple values, each one becoming a candidate directory.
+function normalizeKeywordValue(key: string, value: string): KeywordValue {
+  if (config.facility === "ILL") {
+    if (key.startsWith("proposalId")) {
+      return value.startsWith("internalUse") ? value : "exp_" + value;
+    } else if (key == "type") {
+      if (value == "raw") return "rawdata";
+      else if (value == "derived") return ["derived", "processed"];
+      else return value;
+    } else if (key.startsWith("instrumentId")) {
+      return value.toLowerCase();
+    }
+  }
+  return value;
+}
+
+// Resolves the pattern placeholders, a list keyword value expands
+// the pattern into one candidate directory per value.
 export function resolvePattern(
   pattern: string,
-  keywords: Record<string, string>,
-): string {
-  const resolved = pattern.replace(/\{([^}]+)\}/g, (_, key) => {
-    try {
-      const value = keywords[key];
-      if (value === undefined) {
-        throw new Error(`Missing keyword '${key}'`);
-      }
-      if (config.facility === "ILL") {
-        if (key.startsWith("proposalId")) {
-          return value.startsWith("internalUse") ? value : "exp_" + value;
-        } else if (key == "type") {
-          return value.startsWith("raw") ? "rawdata" : value;
-        } else if (key.startsWith("instrumentId")) {
-          return value.toLowerCase();
-        }
-      }
-      return value;
-    } catch {
-      return undefined;
+  keywords: Record<string, KeywordValue>,
+): string[] {
+  const keys = new Set(
+    (pattern.match(/\{[^}]+\}/g) ?? []).map((match) => match.slice(1, -1)),
+  );
+  let resolved = [pattern];
+  for (const key of keys) {
+    const value = keywords[key];
+    const values = (Array.isArray(value) ? value : [value])
+      .filter((v) => v !== undefined && v !== null)
+      .flatMap((v) => normalizeKeywordValue(key, String(v)));
+    const uniqueValues = [...new Set(values)];
+    if (uniqueValues.length === 0) {
+      throw new Error(`Missing keyword '${key}'`);
     }
-  });
-  if (!resolved || !validateResolvedPattern(resolved))
+    resolved = resolved.flatMap((p) =>
+      uniqueValues.map((v) => p.split(`{${key}}`).join(v)),
+    );
+  }
+  if (!resolved.every(validateResolvedPattern))
     throw new Error("The resolved path is not valid or unaccessable !");
-  return resolved;
+  return [...new Set(resolved)];
 }
 
 export function validateResolvedPattern(pattern: string): boolean {
@@ -106,7 +123,7 @@ export function findFile(dirPattern: string, filename: string): string[] {
 
 export function resolveFilePath(
   filename: string,
-  keywords: Record<string, string> = {},
+  keywords: Record<string, KeywordValue> = {},
 ): FileResolution {
   // filename is an Absolute Path case
   if (path.isAbsolute(filename)) {
@@ -131,9 +148,9 @@ export function resolveFilePath(
     };
   }
 
-  let resolvedPattern: string;
+  let resolvedPatterns: string[];
   try {
-    resolvedPattern = resolvePattern(dirPattern, keywords);
+    resolvedPatterns = resolvePattern(dirPattern, keywords);
   } catch (err) {
     logger.logError("Error resolving file path pattern", { err });
     return {
@@ -142,7 +159,9 @@ export function resolveFilePath(
         err instanceof Error ? err.message : "File path pattern is invalid",
     };
   }
-  const matchedFolders = findFile(resolvedPattern, filename);
+  const matchedFolders = [
+    ...new Set(resolvedPatterns.flatMap((p) => findFile(p, filename))),
+  ];
   if (matchedFolders.length === 0) {
     return {
       statusCode: 404,
