@@ -19,6 +19,8 @@ const fileLinks = new Map<string, FileLink>();
 const fileLinkRetentionMillis =
   config.fileLinkRetentionMillis || 60 * 60 * 1000;
 
+const HDF_EXTENSIONS = [".h5", ".hdf5", ".hdf", ".nxs"];
+
 router.get("/", (req, res) => {
   res.render("file_form", getFormDefaults());
 });
@@ -54,6 +56,13 @@ router.post("/", async (req, res) => {
     return res.status(400).send({
       error: "directoryPathPattern must be specified",
     });
+  }
+
+  const fileAction =
+    typeof req.body.fileAction === "string" ? req.body.fileAction : "";
+
+  if (fileAction === "Open" && !isHdfFile(bodyFileName)) {
+    return renderUnsupportedOpen(res, bodyFileName);
   }
 
   return createFileLink(req, res);
@@ -118,6 +127,10 @@ function openFile(req: express.Request, res: express.Response) {
   const fileData = getFileLink(req);
   if (!fileData) {
     return res.status(403).send("This file link is no longer valid");
+  }
+
+  if (!isHdfFile(fileData.filename)) {
+    return renderUnsupportedOpen(res, fileData.filename);
   }
 
   const streamUrl = createFileAccessUrl("stream", fileData.token, true);
@@ -367,15 +380,20 @@ function getFileStat(fileName: string) {
   }
 }
 
-function getContentType(fileName: string) {
-  const extension = path.extname(fileName).toLowerCase();
+function isHdfFile(fileName: string) {
+  return HDF_EXTENSIONS.includes(path.extname(fileName).toLowerCase());
+}
 
-  if (
-    extension === ".h5" ||
-    extension === ".hdf5" ||
-    extension === ".hdf" ||
-    extension === ".nxs"
-  ) {
+function renderUnsupportedOpen(res: express.Response, fileName: string) {
+  res.statusCode = 400;
+  return res.render("error", {
+    statusCode: 400,
+    error: `Cannot open "${path.basename(fileName)}": only ${HDF_EXTENSIONS.join(", ")} files can be opened`,
+  });
+}
+
+function getContentType(fileName: string) {
+  if (isHdfFile(fileName)) {
     return "application/x-hdf5";
   }
   return "application/octet-stream";
