@@ -10,9 +10,14 @@ import { v4 as uuidv4 } from "uuid";
 
 export const router = express.Router();
 
+interface ResolvedFile {
+  path: string;
+  name: string;
+}
+
 interface ResolvedPaths {
   statusCode: number;
-  paths: string[];
+  paths: ResolvedFile[];
   error?: string;
 }
 
@@ -20,7 +25,7 @@ function resolvePaths(
   filenames: string[],
   keywords: Record<string, string> = {},
 ): ResolvedPaths {
-  const absPaths: string[] = [];
+  const absPaths: ResolvedFile[] = [];
   for (const file of filenames) {
     const resolvedFile = resolveFilePath(file, keywords);
     if (resolvedFile.error) {
@@ -39,7 +44,10 @@ function resolvePaths(
       };
     }
 
-    absPaths.push(path.join(resolvedFile.folders[0], resolvedFile.filename));
+    absPaths.push({
+      path: path.join(resolvedFile.folders[0], resolvedFile.filename),
+      name: resolvedFile.filename,
+    });
   }
   return {
     statusCode: 200,
@@ -57,7 +65,7 @@ router.post("/", async function (req: express.Request, res: express.Response) {
       error: "Invalid filenames, Contains '..' ",
     });
 
-  let absoluteFilePaths: string[] = [];
+  let absoluteFilePaths: ResolvedFile[] = [];
   if (config.directoryPathPattern) {
     // Resolve filePaths from dataset
     const authResponse = await hasFileAccess(req, bodyFileNames, datasetId);
@@ -127,11 +135,12 @@ router.post("/", async function (req: express.Request, res: express.Response) {
     logger.logInfo(`zip file name ${zipFileName}`, {});
 
     files.map((file) => {
-      if (file.length == 0 || fs.lstatSync(file).isDirectory()) return;
+      if (file.path.length == 0 || fs.lstatSync(file.path).isDirectory())
+        return;
 
-      const read = makeReadStream(file);
-      logger.logInfo(`appending ${file}`, {});
-      archive.append(read, { name: path.basename(file) });
+      const read = makeReadStream(file.path);
+      logger.logInfo(`appending ${file.path}`, {});
+      archive.append(read, { name: file.name });
     });
     archive.finalize();
   } catch (error) {

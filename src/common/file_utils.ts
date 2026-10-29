@@ -75,7 +75,7 @@ export function findFile(dirPattern: string, filename: string): string[] {
   try {
     if (stars === 0) {
       const filePath = path.join(dirPattern, filename);
-      return fs.existsSync(filePath) ? [path.dirname(filePath)] : [];
+      return fs.existsSync(filePath) ? [path.resolve(dirPattern)] : [];
     }
 
     const [prefix, suffix] = dirPattern.split("*");
@@ -94,7 +94,7 @@ export function findFile(dirPattern: string, filename: string): string[] {
 
         const filePath = path.join(pathFromPattern, filename);
         if (fs.existsSync(filePath)) {
-          matchedFolders.push(path.dirname(filePath));
+          matchedFolders.push(pathFromPattern);
         }
       });
     return matchedFolders;
