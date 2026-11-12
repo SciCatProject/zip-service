@@ -103,14 +103,18 @@ export const hasFileAccess = async (
     });
 
   // Validate collected variables
-  // avoid ".." in values
+  // avoid ".." and "*" in values
   for (const [key, value] of Object.entries(variables)) {
     const values = Array.isArray(value) ? value : [value];
-    if (values.some((v) => typeof v == "string" && v.includes(".."))) {
+    if (
+      values.some(
+        (v) => typeof v == "string" && (v.includes("..") || v.includes("*")),
+      )
+    ) {
       return {
         hasAccess: false,
         statusCode: 400,
-        error: `value of ${key} is ambigious: contains '..' !`,
+        error: `value of ${key} is ambigious: contains '..' or '*' !`,
         fileNames: [],
         variables: valid ? variables : {},
       };

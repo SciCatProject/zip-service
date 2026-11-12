@@ -1,6 +1,6 @@
 {
-  "routeBasePath": "",
-  "publicOrigin": "<PUBLIC_URL>",
+  "routeBasePath": "<BASE_URL_PREFIX>",
+  "publicOrigin": "<BASE_URL>",
   "formViewsEnabled": {
     "file": false,
     "zip": false,

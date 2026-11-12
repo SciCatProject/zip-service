@@ -3,53 +3,13 @@ import express from "express";
 import path from "path";
 import * as fs from "fs";
 import { config } from "../common/config";
-import {
-  validateFilenames,
-  resolveFilePath,
-  VariableValue,
-} from "../common/file_utils";
+import { validateFilenames } from "../common/file_utils";
+import { ResolvedFile, resolvePaths } from "../common/zip_utils";
 import { hasFileAccess } from "../auth";
 import { logger } from "@user-office-software/duo-logger";
 import { v4 as uuidv4 } from "uuid";
 
 export const router = express.Router();
-
-interface ResolvedPaths {
-  statusCode: number;
-  paths: string[];
-  error?: string;
-}
-
-function resolvePaths(
-  filenames: string[],
-  variables: Record<string, VariableValue> = {},
-): ResolvedPaths {
-  const absPaths: string[] = [];
-  for (const file of filenames) {
-    const resolvedFile = resolveFilePath(file, variables);
-    if (resolvedFile.error) {
-      return {
-        statusCode: resolvedFile.statusCode,
-        paths: [],
-        error: resolvedFile.error,
-      };
-    }
-
-    if (!resolvedFile.filename || !resolvedFile.folders?.[0]) {
-      return {
-        statusCode: 500,
-        paths: [],
-        error: "File path could not be resolved",
-      };
-    }
-
-    absPaths.push(path.join(resolvedFile.folders[0], resolvedFile.filename));
-  }
-  return {
-    statusCode: 200,
-    paths: absPaths,
-  };
-}
 
 router.get("/", (req, res) => {
   if (config.formViewsEnabled?.zip === false) {
@@ -70,12 +30,22 @@ router.post("/", async (req, res) => {
   const bodyFileNames = req.body.files;
   const datasetId = req.body.dataset;
 
+  if (
+    !Array.isArray(bodyFileNames) ||
+    bodyFileNames.length === 0 ||
+    bodyFileNames.some((f) => typeof f !== "string")
+  ) {
+    return res.status(400).send({
+      error: "'files' must be a non-empty array of strings",
+    });
+  }
+
   if (!validateFilenames(bodyFileNames))
     return res.status(400).send({
       error: "Invalid filenames, Contains '..' ",
     });
 
-  let absoluteFilePaths: string[] = [];
+  let absoluteFilePaths: ResolvedFile[] = [];
   if (config.directoryPathPattern) {
     // Resolve filePaths from dataset
     const authResponse = await hasFileAccess(req, bodyFileNames, datasetId);
@@ -141,10 +111,10 @@ router.post("/", async (req, res) => {
     });
     archive.pipe(fileStream);
     try {
-      files.map((fileName: string) => {
-        const directory = path.dirname(fileName);
+      files.map((file) => {
+        const directory = path.dirname(file.path);
         if (fs.existsSync(directory)) {
-          archive.file(fileName, { name: fileName });
+          archive.file(file.path, { name: file.name });
         }
       });
     } catch (error) {
@@ -188,14 +158,14 @@ const getFileSizeInBytes = (filename: string) => {
 };
 
 const initSession = (
-  absoluteFileNames: string[],
+  files: ResolvedFile[],
   zipFileName: string,
   datasetId: string,
 ): Global.ZipData => ({
   currentFileIndex: 0,
-  files: absoluteFileNames.map((fileName) => ({
-    fileName,
-    size: getFileSizeInBytes(fileName),
+  files: files.map((file) => ({
+    fileName: file.name,
+    size: getFileSizeInBytes(file.path),
     progress: 0,
   })),
   zipFileName,

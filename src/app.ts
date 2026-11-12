@@ -21,6 +21,10 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 app.use(
   cors({
+    origin:
+      Array.isArray(config.allowedOrigins) && config.allowedOrigins.length > 0
+        ? config.allowedOrigins
+        : false,
     exposedHeaders: [
       "Accept-Ranges",
       "Content-Disposition",

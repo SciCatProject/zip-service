@@ -1,68 +1,29 @@
 import archiver from "archiver";
 import express from "express";
-import path from "path";
 import * as fs from "fs";
 import { config } from "../common/config";
-import {
-  validateFilenames,
-  resolveFilePath,
-  VariableValue,
-} from "../common/file_utils";
+import { validateFilenames } from "../common/file_utils";
+import { ResolvedFile, resolvePaths } from "../common/zip_utils";
 import { hasFileAccess } from "../auth";
 import { logger } from "@user-office-software/duo-logger";
 import { v4 as uuidv4 } from "uuid";
 
 export const router = express.Router();
 
-interface ResolvedFile {
-  path: string;
-  name: string;
-}
-
-interface ResolvedPaths {
-  statusCode: number;
-  paths: ResolvedFile[];
-  error?: string;
-}
-
-function resolvePaths(
-  filenames: string[],
-  variables: Record<string, VariableValue> = {},
-): ResolvedPaths {
-  const absPaths: ResolvedFile[] = [];
-  for (const file of filenames) {
-    const resolvedFile = resolveFilePath(file, variables);
-    if (resolvedFile.error) {
-      return {
-        statusCode: resolvedFile.statusCode,
-        paths: [],
-        error: resolvedFile.error,
-      };
-    }
-
-    if (!resolvedFile.filename || !resolvedFile.folders?.[0]) {
-      return {
-        statusCode: 500,
-        paths: [],
-        error: "File path could not be resolved",
-      };
-    }
-
-    absPaths.push({
-      path: path.join(resolvedFile.folders[0], resolvedFile.filename),
-      name: resolvedFile.filename,
-    });
-  }
-  return {
-    statusCode: 200,
-    paths: absPaths,
-  };
-}
-
 /* POST zip */
 router.post("/", async function (req: express.Request, res: express.Response) {
   const bodyFileNames = req.body.files;
   const datasetId = req.body.dataset;
+
+  if (
+    !Array.isArray(bodyFileNames) ||
+    bodyFileNames.length === 0 ||
+    bodyFileNames.some((f) => typeof f !== "string")
+  ) {
+    return res.status(400).send({
+      error: "'files' must be a non-empty array of strings",
+    });
+  }
 
   if (!validateFilenames(bodyFileNames))
     return res.status(400).send({

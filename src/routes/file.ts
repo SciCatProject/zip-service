@@ -1,5 +1,6 @@
 import express from "express";
 import * as fs from "fs";
+import { pipeline } from "stream";
 import { config } from "../common/config";
 import {
   FileLink,
@@ -195,7 +196,6 @@ function createResolvedFileLink(
   if (resolution.error) {
     return res.status(resolution.statusCode).send({
       error: resolution.error,
-      folders: resolution.folders,
     });
   }
 
@@ -328,11 +328,16 @@ function createFileAccessUrl(
 }
 
 function createHdfViewUrl(fileUrl: string, filename?: string) {
-  const url = new URL(config.hdfViewServiceUrl);
-  if (!url) {
+  if (!config.hdfViewServiceUrl) {
     return null;
   }
-  url.searchParams.set("url", encodeURIComponent(fileUrl));
+  let url: URL;
+  try {
+    url = new URL(config.hdfViewServiceUrl);
+  } catch {
+    return null;
+  }
+  url.searchParams.set("url", fileUrl);
   if (filename) {
     url.searchParams.set("label", filename);
   }
@@ -420,15 +425,15 @@ function pipeFile(
   res: express.Response,
   options?: { start: number; end: number },
 ) {
-  const readStream = fs.createReadStream(fileName, options);
-  readStream.on("error", (err) => {
+  pipeline(fs.createReadStream(fileName, options), res, (err) => {
+    if (!err) return;
     logger.logError("Error reading file stream", { err });
     if (!res.headersSent) {
-      return res.status(500).send("Unable to read file");
+      res.status(500).send("Unable to read file");
+    } else if (!res.writableEnded) {
+      res.end();
     }
-    return res.end();
   });
-  return readStream.pipe(res);
 }
 
 function parseRange(rangeHeader: string | undefined, fileSize: number) {

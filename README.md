@@ -101,6 +101,7 @@ Required in the root directory (loaded from `config/config.json`).
 | formViewsEnabled.file | boolean | Optional. Enables/disables the `GET /file` form. |
 | formViewsEnabled.zip | boolean | Optional. Enables/disables the `GET /zip` form. |
 | publicOrigin | string | The service's own trusted public origin (scheme + host, e.g. `https://zip-service.example.org`).|
+| allowedOrigins | string[] | Optional. CORS allowlist (`Access-Control-Allow-Origin`) applied to every route. Cross-origin requests are rejected by default unless this is configured. |
 | hdfViewServiceUrl | string | Base URL of the HDF5/NeXus view service that `GET /file/open` redirects to. |
 | allowedDataDirectory | string | Root directory that all resolved file paths must stay under. |
 | directoryPathPattern | string | Path template used to resolve a dataset's file directory. Supports `{{ @variable }}` placeholders. See [File path resolution](#file-path-resolution). |

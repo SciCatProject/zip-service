@@ -63,7 +63,7 @@ export function resolvePattern(
   for (const key of keys) {
     const value = variables[key];
     const values = (Array.isArray(value) ? value : [value])
-      .filter((v) => v !== undefined && v !== null)
+      .filter((v) => v !== undefined && v !== null && v !== "")
       .flatMap((v) => normalizeVariableValue(key, String(v)));
     const uniqueValues = [...new Set(values)];
     if (uniqueValues.length === 0) {
