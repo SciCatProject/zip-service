@@ -88,13 +88,12 @@ export const hasFileAccess = async (
     .datasetsV4ControllerFindByIdV4({ pid: authRequest.dataset })
     .then((value: OutputDatasetDto) => {
       const isPublic = value.isPublished;
-      const isAdmin = authRequest.jwt.groups?.includes("admin");
       const hasAccessGroup = value.accessGroups?.some((item) =>
         new Set(authRequest.jwt.groups).has(item),
       );
       const hasOwnerGroup = authRequest.jwt.groups?.includes(value.ownerGroup);
       keywords = getDatasetKeywords(value);
-      if (isPublic || isAdmin || hasAccessGroup || hasOwnerGroup) return true;
+      if (isPublic || hasAccessGroup || hasOwnerGroup) return true;
 
       return false;
     })
