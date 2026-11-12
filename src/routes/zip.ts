@@ -52,6 +52,13 @@ function resolvePaths(
 }
 
 router.get("/", (req, res) => {
+  if (config.formViewsEnabled?.zip === false) {
+    return res.status(404).render("error", {
+      statusCode: 404,
+      error: "Not found",
+    });
+  }
+
   res.render("zip_form", getFormDefaults());
 });
 

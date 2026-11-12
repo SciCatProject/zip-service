@@ -1,10 +1,15 @@
 {
   "routeBasePath": "",
-  "publicOrigin": "http://localhost:3011",
-  "zipDir": "./files",
-  "jwtSecret": "dev_secret",
-  "sessionSecret": "dev_secret",
-  "facility": "ILL",
+  "publicOrigin": "<PUBLIC_URL>",
+  "formViewsEnabled": {
+    "file": false,
+    "zip": false,
+    "index": false
+  },
+  "zipDir": "<tmpZipStorage>",
+  "jwtSecret": "<dev_secret>",
+  "sessionSecret": "<dev_secret>",
+  "facility": "<FACILITY>",
   "zipRetentionMillis": 3600000,
   "fileLinkRetentionMillis": 3600000,
   "allowedDataDirectory": "/<dataSource>",
@@ -15,17 +20,17 @@
     "proposalIds",
     "type"
   ],
-  "hdfViewServiceUrl": "http://localhost:8080",
+  "hdfViewServiceUrl": "<HDF_VIEWER_URL>",
   "testData": {
-    "jwt": "",
+    "jwt": "<TEST_TOKEN>",
     "files": [
       "test_file_1.txt"
     ]
   },
   "graylogEnabled": false,
-  "graylogServer": "it-graylog.esss.lu.se",
+  "graylogServer": "<GREYLOG_SERVER_URL>",
   "graylogPort": 12201,
   "environment": "development",
-  "scicatApiBasePath": "http://localhost:4200",
-  "scicatApiAccessToken": ""
+  "scicatApiBasePath": "<SCICAT_API_URL>",
+  "scicatApiAccessToken": "<SCICAT_TOKEN>"
 }

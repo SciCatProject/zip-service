@@ -30,8 +30,12 @@
         </div>
         <div class="flex-panel-item form-stack">
           <h3>Forms</h3>
+          <% if (zipFormEnabled) { %>
           <p><a class="button-link" href="<%= routeBasePath %>/zip">Zip files</a></p>
+          <% } %>
+          <% if (fileFormEnabled) { %>
           <p><a class="button-link" href="<%= routeBasePath %>/file">Single file</a></p>
+          <% } %>
         </div>
       </div>
     </div>

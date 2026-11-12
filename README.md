@@ -84,13 +84,11 @@ Rather than trusting a client-supplied directory, the service resolves each file
 
 - `allowedDataDirectory` — the root directory all resolved paths must stay under.
 - `directoryPathPattern` — a path template with `{{ @variable }}` placeholders (e.g. `{{ @instrumentIds[0] }}`).
-- `requiredDatasetVariables` — the list of placeholders (matching those used in `directoryPathPattern`) whose values are read off the SciCat dataset record returned for the requested `dataset` (array fields are indexed with `[n]`, e.g. `instrumentIds[0]`).
-  A variable without an index whose value is a list (e.g. `instrumentIds`) expands the pattern into one candidate directory per value (combined across all list variables). The file is searched in every candidate directory: it must be found in exactly one, otherwise a `404` (not found) or `409` (found in several directories) is returned.
+- `requiredDatasetVariables` — the list of placeholders (matching those used in `directoryPathPattern`) whose values are read off the SciCat's Dataset Record ( supports array fields for multiple directory candidates).
+  The file is searched in every candidate directory: it must be found in exactly one, otherwise a `404` (not found) or `409` (found in several directories) is returned.
 
-Every resolved variable value is validated to stay within `allowedDataDirectory` and must not contain `..`. 
+Every resolved variable value is validated to stay within `allowedDataDirectory` and must not contain `..` (to avoid path traversal). 
 
-## Specific facility handling:
-- When `facility` is `"ILL"`, variable values are additionally normalized (e.g. `proposalId` values are prefixed with `exp_`, `type` values starting with `raw` become `rawdata`, `instrumentId` values are lower-cased) to match ILL's on-disk directory naming.
 
 # config/config.json
 
@@ -98,6 +96,10 @@ Required in the root directory (loaded from `config/config.json`).
 | property key | Data type | Description |
 | --------------------- | ----------- | ----------- |
 | routeBasePath | string | Optional. Path prefix the service is mounted under behind a reverse proxy (e.g. `/zip-service`). defaults to `/` |
+| formViewsEnabled | Object | Optional. Toggles the HTML testing forms on/off per route. Each key defaults to enabled (`true`) when omitted. A disabled form's `GET` route returns a `404`. |
+| formViewsEnabled.index | boolean | Optional. Enables/disables the `GET /` landing page. |
+| formViewsEnabled.file | boolean | Optional. Enables/disables the `GET /file` form. |
+| formViewsEnabled.zip | boolean | Optional. Enables/disables the `GET /zip` form. |
 | publicOrigin | string | The service's own trusted public origin (scheme + host, e.g. `https://zip-service.example.org`).|
 | hdfViewServiceUrl | string | Base URL of the HDF5/NeXus view service that `GET /file/open` redirects to. |
 | allowedDataDirectory | string | Root directory that all resolved file paths must stay under. |

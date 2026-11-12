@@ -23,6 +23,13 @@ const fileLinkRetentionMillis =
 const HDF_EXTENSIONS = [".h5", ".hdf5", ".hdf", ".nxs"];
 
 router.get("/", (req, res) => {
+  if (config.formViewsEnabled?.file === false) {
+    return res.status(404).render("error", {
+      statusCode: 404,
+      error: "Not found",
+    });
+  }
+
   res.render("file_form", getFormDefaults());
 });
 
