@@ -14,7 +14,7 @@ export const hasFileAccess = async (
 ): Promise<Global.AuthResponse> => {
   const { jwtSecret } = config;
   const dataSetAPI = scicatDataSetAPI();
-  let keywords = {};
+  let variables = {};
 
   if (!jwtSecret) {
     return {
@@ -79,7 +79,7 @@ export const hasFileAccess = async (
         statusCode: 200,
         error: "",
         fileNames: authRequest.fileNames,
-        keywords: keywords,
+        variables: variables,
       };
     }
   }
@@ -92,7 +92,7 @@ export const hasFileAccess = async (
         new Set(authRequest.jwt.groups).has(item),
       );
       const hasOwnerGroup = authRequest.jwt.groups?.includes(value.ownerGroup);
-      keywords = getDatasetKeywords(value);
+      variables = getDatasetVariables(value);
       if (isPublic || hasAccessGroup || hasOwnerGroup) return true;
 
       return false;
@@ -102,9 +102,9 @@ export const hasFileAccess = async (
       return false;
     });
 
-  // Validate Collected keywords
+  // Validate collected variables
   // avoid ".." in values
-  for (const [key, value] of Object.entries(keywords)) {
+  for (const [key, value] of Object.entries(variables)) {
     const values = Array.isArray(value) ? value : [value];
     if (values.some((v) => typeof v == "string" && v.includes(".."))) {
       return {
@@ -112,7 +112,7 @@ export const hasFileAccess = async (
         statusCode: 400,
         error: `value of ${key} is ambigious: contains '..' !`,
         fileNames: [],
-        keywords: valid ? keywords : {},
+        variables: valid ? variables : {},
       };
     }
   }
@@ -122,30 +122,32 @@ export const hasFileAccess = async (
     statusCode: valid ? 200 : 403,
     error: valid ? "" : "You do not have access to this resource",
     fileNames: valid ? authRequest.fileNames : [],
-    keywords: valid ? keywords : {},
+    variables: valid ? variables : {},
   };
 };
 
-function getDatasetKeywords(dataset: OutputDatasetDto) {
-  const requiredKeywords: string[] = Array.isArray(config.requiredKeywords)
-    ? config.requiredKeywords
+function getDatasetVariables(dataset: OutputDatasetDto) {
+  const requiredVariables: string[] = Array.isArray(
+    config.requiredDatasetVariables,
+  )
+    ? config.requiredDatasetVariables
     : [];
-  const keywords: Record<string, unknown> = {};
+  const variables: Record<string, unknown> = {};
   const datasetValues = dataset as unknown as Record<string, unknown>;
-  for (const keyword of requiredKeywords) {
-    const match = keyword.match(/^([^[\]]+)\[(\d+)\]$/);
+  for (const variable of requiredVariables) {
+    const match = variable.match(/^([^[\]]+)\[(\d+)\]$/);
 
     if (match) {
       const [, property, index] = match;
       const value = datasetValues[property];
 
-      keywords[keyword] = Array.isArray(value)
+      variables[variable] = Array.isArray(value)
         ? value[Number(index)]
         : undefined;
     } else {
-      keywords[keyword] = datasetValues[keyword];
+      variables[variable] = datasetValues[variable];
     }
   }
 
-  return keywords;
+  return variables;
 }

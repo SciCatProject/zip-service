@@ -19,7 +19,7 @@
         >
           <p>
             Submit a POST request to <code>/zip</code> with a jwt, dataset,
-            directory, and file array. The result is a progress page that links
+            and file array. The result is a progress page that links
             to the generated zip file when processing is complete.
           </p>
           <p><a href="<%= routeBasePath %>/">Back to forms</a></p>
@@ -33,15 +33,6 @@
               name="jwt"
               class="input"
               value="<%= jwt %>"
-            />
-          </div>
-          <div class="table-flex-container">
-            <div>Directory</div>
-            <input
-              type="text"
-              name="directory"
-              class="input"
-              value="<%= directory %>"
             />
           </div>
           <div class="table-flex-container">

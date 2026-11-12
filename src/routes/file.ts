@@ -6,7 +6,7 @@ import {
   FileResolution,
   validateFilenames,
   resolveFilePath,
-  KeywordValue,
+  VariableValue,
 } from "../common/file_utils";
 import { hasFileAccess } from "../auth";
 import { logger } from "@user-office-software/duo-logger";
@@ -170,7 +170,7 @@ async function createFileLink(req: express.Request, res: express.Response) {
     res,
     datasetId,
     filename,
-    authResponse.keywords ?? {},
+    authResponse.variables ?? {},
     fileAction,
   );
 }
@@ -180,10 +180,10 @@ function createResolvedFileLink(
   res: express.Response,
   datasetId: string,
   filename: string,
-  keywords?: Record<string, KeywordValue>,
+  variables?: Record<string, VariableValue>,
   fileAction = "",
 ) {
-  const resolution: FileResolution = resolveFilePath(filename, keywords);
+  const resolution: FileResolution = resolveFilePath(filename, variables);
 
   if (resolution.error) {
     return res.status(resolution.statusCode).send({
@@ -463,7 +463,6 @@ function parseRange(rangeHeader: string | undefined, fileSize: number) {
 function getFormDefaults() {
   return {
     jwt: config.testData.jwt || "",
-    directory: config.testData.directory || "",
     dataset: "",
     file0: config.testData?.files[0] || "",
   };

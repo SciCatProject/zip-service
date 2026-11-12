@@ -83,14 +83,14 @@ On success this returns a short-lived, single-use token that lasts for `fileLink
 Rather than trusting a client-supplied directory, the service resolves each file's directory from:
 
 - `allowedDataDirectory` — the root directory all resolved paths must stay under.
-- `directoryPathPattern` — a path template with `{keyword}` placeholders (e.g. `{instrumentIds[0]}`), and at most one `*` wildcard segment matched against the subdirectories of `allowedDataDirectory`.
-- `requiredKeywords` — the list of placeholders (matching those used in `directoryPathPattern`) whose values are read off the SciCat dataset record returned for the requested `dataset` (array fields are indexed with `[n]`, e.g. `instrumentIds[0]`).
-  A keyword without an index whose value is a list (e.g. `instrumentIds`) expands the pattern into one candidate directory per value (combined across all list keywords). The file is searched in every candidate directory: it must be found in exactly one, otherwise a `404` (not found) or `409` (found in several directories) is returned.
+- `directoryPathPattern` — a path template with `{{ @variable }}` placeholders (e.g. `{{ @instrumentIds[0] }}`).
+- `requiredDatasetVariables` — the list of placeholders (matching those used in `directoryPathPattern`) whose values are read off the SciCat dataset record returned for the requested `dataset` (array fields are indexed with `[n]`, e.g. `instrumentIds[0]`).
+  A variable without an index whose value is a list (e.g. `instrumentIds`) expands the pattern into one candidate directory per value (combined across all list variables). The file is searched in every candidate directory: it must be found in exactly one, otherwise a `404` (not found) or `409` (found in several directories) is returned.
 
-Every resolved keyword value is validated to stay within `allowedDataDirectory` and must not contain `..`. 
+Every resolved variable value is validated to stay within `allowedDataDirectory` and must not contain `..`. 
 
 ## Specific facility handling:
-- When `facility` is `"ILL"`, keyword values are additionally normalized (e.g. `proposalId` values are prefixed with `exp_`, `type` values starting with `raw` become `rawdata`, `instrumentId` values are lower-cased) to match ILL's on-disk directory naming.
+- When `facility` is `"ILL"`, variable values are additionally normalized (e.g. `proposalId` values are prefixed with `exp_`, `type` values starting with `raw` become `rawdata`, `instrumentId` values are lower-cased) to match ILL's on-disk directory naming.
 
 # config/config.json
 
@@ -101,14 +101,14 @@ Required in the root directory (loaded from `config/config.json`).
 | publicOrigin | string | The service's own trusted public origin (scheme + host, e.g. `https://zip-service.example.org`).|
 | hdfViewServiceUrl | string | Base URL of the HDF5/NeXus view service that `GET /file/open` redirects to. |
 | allowedDataDirectory | string | Root directory that all resolved file paths must stay under. |
-| directoryPathPattern | string | Path template used to resolve a dataset's file directory. Supports `{keyword}` placeholders and a single `*` wildcard segment. See [File path resolution](#file-path-resolution). |
+| directoryPathPattern | string | Path template used to resolve a dataset's file directory. Supports `{{ @variable }}` placeholders. See [File path resolution](#file-path-resolution). |
 | zipDir | string | Directory where generated zip files are stored. Note that zip-files are deleted periodically. |
 | zipRetentionMillis | number | The number of milliseconds zip files are stored before they're deleted. |
 | fileLinkRetentionMillis | number | The number of milliseconds a single-file link/token (from `POST /file`) remains valid. |
 | jwtSecret | string | Secret used to sign/verify the JWT clients authenticate with. |
 | sessionSecret | string | Used to sign session ids to detect client side tampering. |
 | facility | string | Different facilities have different ways of authorizing file access and naming data directories. This property is used to determine which mechanism/normalization to use (e.g. `"ILL"`). |
-| requiredKeywords | string[] | Placeholder names (matching `directoryPathPattern`) whose values are read from the SciCat dataset record. List values resolve to multiple candidate directories. |
+| requiredDatasetVariables | string[] | Placeholder names (matching `directoryPathPattern`) whose values are read from the SciCat dataset record. List values resolve to multiple candidate directories. |
 | scicatApiBasePath | string | Base URL of the SciCat API used to look up dataset access rights. |
 | scicatApiAccessToken | string | Access token used to authenticate against the SciCat API. |
 | graylogEnabled | boolean | Whether to ship logs to Graylog. |
@@ -131,8 +131,8 @@ Example data
   "sessionSecret": "fj9832mnsaf3j9adsa",
   "facility": "ILL",
   "allowedDataDirectory": "/data",
-  "directoryPathPattern": "/data/{sourceFolder}/{type}",
-  "requiredKeywords": ["sourceFolder", "type"],
+  "directoryPathPattern": "/data/{{ @sourceFolder }}/{{ @type }}",
+  "requiredDatasetVariables": ["sourceFolder", "type"],
   "hdfViewServiceUrl": "https://hdf-viewer.example.org",
   "routeBasePath": "",
   "publicOrigin": "https://zip-service.example.org",

@@ -33,7 +33,7 @@ declare global {
       statusCode: number;
       error?: string;
       fileNames: string[];
-      keywords?: Record<string, string | string[]>;
+      variables?: Record<string, string | string[]>;
     }
   }
 }

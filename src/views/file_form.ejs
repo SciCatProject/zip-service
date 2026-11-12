@@ -19,8 +19,8 @@
         >
           <p>
             Submit a POST request to <code>/file</code> with a jwt, dataset,
-            and file name. Use directory for direct path resolution, or omit it
-            to resolve the path from the configured dataset keywords.
+            and file name. The directory is always resolved server-side from
+            the configured dataset variables.
           </p>
           <p><a href="<%= routeBasePath %>/">Back to forms</a></p>
         </div>
@@ -33,15 +33,6 @@
               name="jwt"
               class="input"
               value="<%= jwt %>"
-            />
-          </div>
-          <div class="table-flex-container">
-            <div>Directory</div>
-            <input
-              type="text"
-              name="directory"
-              class="input"
-              value="<%= directory %>"
             />
           </div>
           <div class="table-flex-container">

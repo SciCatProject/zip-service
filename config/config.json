@@ -7,11 +7,12 @@
   "facility": "ILL",
   "zipRetentionMillis": 3600000,
   "fileLinkRetentionMillis": 3600000,
-  "allowedDataDirectory": "/illdata",
-  "directoryPathPattern": "/illdata/*/{instrumentIds[0]}/{proposalIds[0]}/{type}",
-  "requiredKeywords": [
-    "intrumentIds[0]",
-    "proposalIds[0]",
+  "allowedDataDirectory": "/<dataSource>",
+  "directoryPathPattern": "/<dataSource>/{{ @keywords }}/{{ @instrumentIds }}/{{ @proposalIds }}/{{ @type }}",
+  "requiredDatasetVariables": [
+    "keywords",
+    "instrumentIds",
+    "proposalIds",
     "type"
   ],
   "hdfViewServiceUrl": "http://localhost:8080",

@@ -6,7 +6,7 @@ import { config } from "../common/config";
 import {
   validateFilenames,
   resolveFilePath,
-  KeywordValue,
+  VariableValue,
 } from "../common/file_utils";
 import { hasFileAccess } from "../auth";
 import { logger } from "@user-office-software/duo-logger";
@@ -22,11 +22,11 @@ interface ResolvedPaths {
 
 function resolvePaths(
   filenames: string[],
-  keywords: Record<string, KeywordValue> = {},
+  variables: Record<string, VariableValue> = {},
 ): ResolvedPaths {
   const absPaths: string[] = [];
   for (const file of filenames) {
-    const resolvedFile = resolveFilePath(file, keywords);
+    const resolvedFile = resolveFilePath(file, variables);
     if (resolvedFile.error) {
       return {
         statusCode: resolvedFile.statusCode,
@@ -82,7 +82,7 @@ router.post("/", async (req, res) => {
         error: authResponse.error,
       });
     }
-    const resolvedPaths = resolvePaths(bodyFileNames, authResponse.keywords);
+    const resolvedPaths = resolvePaths(bodyFileNames, authResponse.variables);
     if (resolvedPaths.error) {
       return res.status(resolvedPaths.statusCode).send(resolvedPaths.error);
     }
@@ -200,7 +200,6 @@ const initSession = (
 function getFormDefaults() {
   return {
     jwt: config.testData.jwt || "",
-    directory: config.testData.directory || "",
     dataset: "",
     file0: config.testData?.files[0] || "",
     file1: config.testData?.files[1] || "",

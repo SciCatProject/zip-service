@@ -9,7 +9,6 @@ export interface FileLink {
   token: string;
   expiresAt: number;
   datasetId?: string;
-  directory?: string;
 }
 export interface FileResolution {
   statusCode: number;
@@ -27,10 +26,10 @@ export function validateFilenames(filenames: string[]): boolean {
   return true;
 }
 
-export type KeywordValue = string | string[];
+export type VariableValue = string | string[];
 
 // May return multiple values, each one becoming a candidate directory.
-function normalizeKeywordValue(key: string, value: string): KeywordValue {
+function normalizeVariableValue(key: string, value: string): VariableValue {
   if (config.facility === "ILL") {
     if (key.startsWith("proposalId")) {
       return value.startsWith("internalUse") ? value : "exp_" + value;
@@ -45,27 +44,37 @@ function normalizeKeywordValue(key: string, value: string): KeywordValue {
   return value;
 }
 
-// Resolves the pattern placeholders, a list keyword value expands
-// the pattern into one candidate directory per value.
+const PLACEHOLDER_PATTERN = /\{\{\s*@([^}\s]+)\s*\}\}/g;
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// Resolves the `{{ @variable }}` pattern placeholders, a list variable value
+// expands the pattern into one candidate directory per value.
 export function resolvePattern(
   pattern: string,
-  keywords: Record<string, KeywordValue>,
+  variables: Record<string, VariableValue>,
 ): string[] {
   const keys = new Set(
-    (pattern.match(/\{[^}]+\}/g) ?? []).map((match) => match.slice(1, -1)),
+    [...pattern.matchAll(PLACEHOLDER_PATTERN)].map((match) => match[1]),
   );
   let resolved = [pattern];
   for (const key of keys) {
-    const value = keywords[key];
+    const value = variables[key];
     const values = (Array.isArray(value) ? value : [value])
       .filter((v) => v !== undefined && v !== null)
-      .flatMap((v) => normalizeKeywordValue(key, String(v)));
+      .flatMap((v) => normalizeVariableValue(key, String(v)));
     const uniqueValues = [...new Set(values)];
     if (uniqueValues.length === 0) {
-      throw new Error(`Missing keyword '${key}'`);
+      throw new Error(`Missing variable '${key}'`);
     }
+    const placeholder = new RegExp(
+      `\\{\\{\\s*@${escapeRegExp(key)}\\s*\\}\\}`,
+      "g",
+    );
     resolved = resolved.flatMap((p) =>
-      uniqueValues.map((v) => p.split(`{${key}}`).join(v)),
+      uniqueValues.map((v) => p.replace(placeholder, v)),
     );
   }
   if (!resolved.every(validateResolvedPattern))
@@ -85,36 +94,9 @@ export function validateResolvedPattern(pattern: string): boolean {
 }
 
 export function findFile(dirPattern: string, filename: string): string[] {
-  const stars = (dirPattern.match(/\*/g) ?? []).length;
-  if (stars > 1) {
-    throw new Error("Only a single '*' is supported.");
-  }
   try {
-    if (stars === 0) {
-      const filePath = path.join(dirPattern, filename);
-      return fs.existsSync(filePath) ? [path.resolve(dirPattern)] : [];
-    }
-
-    const [prefix, suffix] = dirPattern.split("*");
-    const parentDir = path.resolve(prefix);
-    const normalizedSuffix = suffix.replace(/^[/\\]/, "");
-    const matchedFolders: string[] = [];
-
-    fs.readdirSync(parentDir, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
-      .forEach((entry) => {
-        const pathFromPattern = path.join(
-          parentDir,
-          entry.name,
-          normalizedSuffix,
-        );
-
-        const filePath = path.join(pathFromPattern, filename);
-        if (fs.existsSync(filePath)) {
-          matchedFolders.push(pathFromPattern);
-        }
-      });
-    return matchedFolders;
+    const filePath = path.join(dirPattern, filename);
+    return fs.existsSync(filePath) ? [path.resolve(dirPattern)] : [];
   } catch (err) {
     logger.logError("Error searching file directories", { err });
     return [];
@@ -123,7 +105,7 @@ export function findFile(dirPattern: string, filename: string): string[] {
 
 export function resolveFilePath(
   filename: string,
-  keywords: Record<string, KeywordValue> = {},
+  variables: Record<string, VariableValue> = {},
 ): FileResolution {
   // filename is an Absolute Path case
   if (path.isAbsolute(filename)) {
@@ -150,7 +132,7 @@ export function resolveFilePath(
 
   let resolvedPatterns: string[];
   try {
-    resolvedPatterns = resolvePattern(dirPattern, keywords);
+    resolvedPatterns = resolvePattern(dirPattern, variables);
   } catch (err) {
     logger.logError("Error resolving file path pattern", { err });
     return {
