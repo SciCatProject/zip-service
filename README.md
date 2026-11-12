@@ -121,7 +121,8 @@ Required in the root directory (loaded from `config/config.json`).
 | testData | Object | Optional. Default input values at the index/zip/file forms. |
 | testData.jwt | string | Optional. Default jwt. |
 | testData.files | string[] | Optional. Default files. |
-| dramDirectory | string | Deprecated. Upload directory used by the (currently disabled) `/upload` route. |
+| uploadEnabled | boolean | Optional. Enables the `POST /upload` route (zip-file upload/extraction) and its `express-fileupload` middleware. Disabled by default; the route doesn't exist (404) unless this is explicitly set to `true`. |
+| dramDirectory | string | Upload directory used by the `/upload` route. Required when `uploadEnabled` is `true`. |
 
 Example data
 

@@ -32,5 +32,6 @@
   "graylogPort": 12201,
   "environment": "development",
   "scicatApiBasePath": "<SCICAT_API_URL>",
-  "scicatApiAccessToken": "<SCICAT_TOKEN>"
+  "scicatApiAccessToken": "<SCICAT_TOKEN>",
+  "uploadEnabled": false
 }

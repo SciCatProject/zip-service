@@ -11,7 +11,7 @@ import { router as zipInPlaceRouter } from "./routes/zip_in_place";
 import { router as downloadRouter } from "./routes/download";
 import { router as fileRouter } from "./routes/file";
 import { router as indexRouter } from "./routes/index";
-// import { router as uploadRouter } from "./routes/upload";
+import { router as uploadRouter } from "./routes/upload";
 import { logger } from "@user-office-software/duo-logger";
 import { configureLogger } from "./common/configureLogger";
 import { getRouteBasePath } from "./common/routing";
@@ -50,20 +50,22 @@ app.use(
     name: "zip-service.sid",
   }),
 );
-app.use(
-  fileUpload({
-    useTempFiles: true,
-    tempFileDir: config.zipDir,
-    debug: true,
-  }),
-);
-
 app.use("/", indexRouter);
 app.use("/zip", zipRouter);
 app.use("/zip_in_place", zipInPlaceRouter);
 app.use("/download", downloadRouter);
 app.use("/file", fileRouter);
-// app.use("/upload", uploadRouter);
+if (config.uploadEnabled === true) {
+  app.use(
+    "/upload",
+    fileUpload({
+      useTempFiles: true,
+      tempFileDir: config.zipDir,
+      debug: true,
+    }),
+    uploadRouter,
+  );
+}
 
 configureLogger(
   config.graylogEnabled,
