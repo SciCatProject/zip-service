@@ -53,11 +53,7 @@ router.post("/", async (req, res) => {
 
   const bodyFileName = bodyFileNames[0];
 
-  if (path.isAbsolute(bodyFileName)) {
-    return res.status(400).send({
-      error: "Invalid filename, Absolute Path was given",
-    });
-  } else if (!validateFilenames([bodyFileName])) {
+  if (!validateFilenames([bodyFileName])) {
     return res.status(400).send({
       error: "Invalid filename, Contains '..' ",
     });
@@ -199,13 +195,15 @@ function createResolvedFileLink(
     });
   }
 
-  const filepath = path.join(resolution.folders?.[0], filename);
+  const resolvedFilename = resolution.filename;
+  const resolvedFolder = resolution.folders?.[0];
 
-  if (!filepath) {
+  if (!resolvedFilename || !resolvedFolder) {
     return res.status(500).send({
       error: "File path could not be resolved",
     });
   }
+  const filepath = path.join(resolvedFolder, resolvedFilename);
   const fileStat = getFileStat(filepath);
 
   if (!fileStat || fileStat.isDirectory()) {
@@ -217,7 +215,7 @@ function createResolvedFileLink(
   const token = uuidv4();
 
   fileLinks.set(token, {
-    filename,
+    filename: resolvedFilename,
     filepath,
     datasetId,
     token,
@@ -237,7 +235,7 @@ function createResolvedFileLink(
   }
 
   return res.status(201).send({
-    fileName: filename,
+    fileName: resolvedFilename,
     size: fileStat.size,
     expiresAt: new Date(Date.now() + fileLinkRetentionMillis).toISOString(),
     downloadUrl,

@@ -50,6 +50,31 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function isInsideDirectory(dir: string, filePath: string): boolean {
+  const relative = path.relative(path.resolve(dir), path.resolve(filePath));
+  return (
+    relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative)
+  );
+}
+
+// A relative filename may be in any resolved directory, an absolute one only
+// in the resolved directories containing it.
+function getFileCandidates(
+  resolvedPatterns: string[],
+  filename: string,
+): FileResolution {
+  const folders = path.isAbsolute(filename)
+    ? resolvedPatterns.filter((folder) => isInsideDirectory(folder, filename))
+    : resolvedPatterns;
+  if (folders.length === 0) {
+    return {
+      statusCode: 403,
+      error: "File is not accessible from the resolved directories",
+    };
+  }
+  return { statusCode: 200, filename, folders };
+}
+
 // Resolves the `{{ @variable }}` pattern placeholders, a list variable value
 // expands the pattern into one candidate directory per value.
 export function resolvePattern(
@@ -83,19 +108,13 @@ export function resolvePattern(
 }
 
 export function validateResolvedPattern(pattern: string): boolean {
-  const allowed = path.resolve(config.allowedDataDirectory);
-  const patternDir = path.resolve(pattern);
-
-  const relative = path.relative(allowed, patternDir);
-
-  return (
-    relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative)
-  );
+  return isInsideDirectory(config.allowedDataDirectory, pattern);
 }
 
 export function findFile(dirPattern: string, filename: string): string[] {
   try {
-    const filePath = path.join(dirPattern, filename);
+    const filePath = path.resolve(dirPattern, filename);
+    if (!isInsideDirectory(dirPattern, filePath)) return [];
     return fs.existsSync(filePath) ? [path.resolve(dirPattern)] : [];
   } catch (err) {
     logger.logError("Error searching file directories", { err });
@@ -107,13 +126,6 @@ export function resolveFilePath(
   filename: string,
   variables: Record<string, VariableValue> = {},
 ): FileResolution {
-  // filename is an Absolute Path case
-  if (path.isAbsolute(filename)) {
-    return {
-      statusCode: 400,
-      error: "Absolute filenames are not supported",
-    };
-  }
   const dataRoot = config.allowedDataDirectory;
   const dirPattern = config.directoryPathPattern;
   if (!dataRoot) {
@@ -141,8 +153,14 @@ export function resolveFilePath(
         err instanceof Error ? err.message : "File path pattern is invalid",
     };
   }
+  const candidates = getFileCandidates(resolvedPatterns, filename);
+  if (candidates.error) return candidates;
   const matchedFolders = [
-    ...new Set(resolvedPatterns.flatMap((p) => findFile(p, filename))),
+    ...new Set(
+      (candidates.folders ?? []).flatMap((folder) =>
+        findFile(folder, filename),
+      ),
+    ),
   ];
   if (matchedFolders.length === 0) {
     return {
