@@ -36,7 +36,7 @@ export function resolvePaths(
     }
 
     absPaths.push({
-      path: path.join(resolvedFile.folders[0], resolvedFile.filename),
+      path: path.resolve(resolvedFile.folders[0], resolvedFile.filename),
       name: resolvedFile.filename,
     });
   }

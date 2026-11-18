@@ -203,7 +203,7 @@ function createResolvedFileLink(
       error: "File path could not be resolved",
     });
   }
-  const filepath = path.join(resolvedFolder, resolvedFilename);
+  const filepath = path.resolve(resolvedFolder, resolvedFilename);
   const fileStat = getFileStat(filepath);
 
   if (!fileStat || fileStat.isDirectory()) {
