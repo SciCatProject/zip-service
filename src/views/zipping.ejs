@@ -7,6 +7,8 @@
     <script type="text/javascript" src="<%= routeBasePath %>/js/progressbar.min.js"></script>
     <script>
        var currentFileIndex = 0;
+      // Declared here, not inside ready(), because poll() below uses it too
+      var routeBasePath = <%- JSON.stringify(routeBasePath || "").replace(/</g, "\\u003c") %>;
       $( document ).ready(function() {
         var circle = new ProgressBar.Circle('#progressbar', {
           strokeWidth: 20,
@@ -17,7 +19,6 @@
           trailWidth: 20,
           svgStyle: null
         });
-        var routeBasePath = <%- JSON.stringify(routeBasePath || "").replace(/</g, "\\u003c") %>;
         var zipFileName = '<%= zipFileName %>';
         var total = '<%= total %>';
         iId = setInterval(() => {poll(circle, total, zipFileName)}, 1000);
