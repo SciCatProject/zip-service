@@ -3,7 +3,10 @@ import express from "express";
 import path from "path";
 import * as fs from "fs";
 import { config } from "../common/config";
-import { validateFilenames } from "../common/file_utils";
+import {
+  isPathInsideAllowedDataDirectory,
+  validateFilenames,
+} from "../common/file_utils";
 import { ResolvedFile, resolvePaths } from "../common/zip_utils";
 import { hasFileAccess } from "../auth";
 import { logger } from "@user-office-software/duo-logger";
@@ -113,7 +116,10 @@ router.post("/", async (req, res) => {
     try {
       files.map((file) => {
         const directory = path.dirname(file.path);
-        if (fs.existsSync(directory)) {
+        if (
+          fs.existsSync(directory) &&
+          isPathInsideAllowedDataDirectory(file.path)
+        ) {
           archive.file(file.path, { name: file.name });
         }
       });

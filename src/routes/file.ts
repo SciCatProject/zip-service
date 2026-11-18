@@ -6,6 +6,7 @@ import {
   FileLink,
   FileResolution,
   validateFilenames,
+  isPathInsideAllowedDataDirectory,
   resolveFilePath,
   VariableValue,
 } from "../common/file_utils";
@@ -213,10 +214,11 @@ function createResolvedFileLink(
   }
 
   const token = uuidv4();
+  const canonicalFilepath = fs.realpathSync(filepath);
 
   fileLinks.set(token, {
     filename: resolvedFilename,
-    filepath,
+    filepath: canonicalFilepath,
     datasetId,
     token,
     expiresAt: Date.now() + fileLinkRetentionMillis,
@@ -383,6 +385,9 @@ function getBodyFileNames(body: Record<string, unknown>) {
 
 function getFileStat(fileName: string) {
   try {
+    if (!isPathInsideAllowedDataDirectory(fileName)) {
+      return null;
+    }
     return fs.statSync(fileName);
   } catch (err) {
     logger.logError("Error getting file stat", { err });

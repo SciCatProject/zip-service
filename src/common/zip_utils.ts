@@ -1,5 +1,9 @@
 import path from "path";
-import { resolveFilePath, VariableValue } from "./file_utils";
+import {
+  isPathInsideAllowedDataDirectory,
+  resolveFilePath,
+  VariableValue,
+} from "./file_utils";
 
 export interface ResolvedFile {
   path: string;
@@ -35,8 +39,20 @@ export function resolvePaths(
       };
     }
 
+    const absolutePath = path.resolve(
+      resolvedFile.folders[0],
+      resolvedFile.filename,
+    );
+    if (!isPathInsideAllowedDataDirectory(absolutePath)) {
+      return {
+        statusCode: 403,
+        paths: [],
+        error: "File is not accessible from the resolved directories",
+      };
+    }
+
     absPaths.push({
-      path: path.resolve(resolvedFile.folders[0], resolvedFile.filename),
+      path: absolutePath,
       name: resolvedFile.filename,
     });
   }

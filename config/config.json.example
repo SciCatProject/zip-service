@@ -13,6 +13,7 @@
   "zipRetentionMillis": 3600000,
   "fileLinkRetentionMillis": 3600000,
   "allowedDataDirectory": "/<dataSource>",
+  "maxResolvedPathCandidates": 1000,
   "directoryPathPattern": "/<dataSource>/{{ @keywords }}/{{ @instrumentIds }}/{{ @proposalIds }}/{{ @type }}",
   "requiredDatasetVariables": [
     "keywords",

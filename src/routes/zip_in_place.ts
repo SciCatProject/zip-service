@@ -2,7 +2,10 @@ import archiver from "archiver";
 import express from "express";
 import * as fs from "fs";
 import { config } from "../common/config";
-import { validateFilenames } from "../common/file_utils";
+import {
+  isPathInsideAllowedDataDirectory,
+  validateFilenames,
+} from "../common/file_utils";
 import { ResolvedFile, resolvePaths } from "../common/zip_utils";
 import { hasFileAccess } from "../auth";
 import { logger } from "@user-office-software/duo-logger";
@@ -100,7 +103,11 @@ router.post("/", async function (req: express.Request, res: express.Response) {
     logger.logInfo(`zip file name ${zipFileName}`, {});
 
     files.map((file) => {
-      if (file.path.length == 0 || fs.lstatSync(file.path).isDirectory())
+      if (
+        file.path.length == 0 ||
+        !isPathInsideAllowedDataDirectory(file.path) ||
+        fs.lstatSync(file.path).isDirectory()
+      )
         return;
 
       const read = makeReadStream(file.path);
