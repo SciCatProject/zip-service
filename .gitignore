@@ -8,6 +8,7 @@ dist
 
 # testing
 /testdata
+/test
 
 # generated zips
 /files/*
@@ -28,5 +29,6 @@ yarn-error.log*
 
 .vscode/
 local.config.json
+/config/config.json
 
 tst
