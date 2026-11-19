@@ -1,19 +1,37 @@
 {
-  "zipDir": "./files",
-  "jwtSecret": "fhjekrsgvhuirs",
-  "sessionSecret": "fj9832mnsaf3j9adsa",
-  "facility": "ess",
+  "routeBasePath": "<BASE_URL_PREFIX>",
+  "publicOrigin": "<BASE_URL>",
+  "formViewsEnabled": {
+    "file": false,
+    "zip": false,
+    "index": false
+  },
+  "zipDir": "<tmpZipStorage>",
+  "jwtSecret": "<dev_secret>",
+  "sessionSecret": "<dev_secret>",
+  "facility": "<FACILITY>",
   "zipRetentionMillis": 3600000,
-  "dramDirectory": "/nfs/groups/beamlines/dram",
+  "fileLinkRetentionMillis": 3600000,
+  "allowedDataDirectory": "/<dataSource>",
+  "directoryPathPattern": "/<dataSource>/{{ @keywords }}/{{ @instrumentIds }}/{{ @proposalIds }}/{{ @type }}",
+  "requiredDatasetVariables": [
+    "keywords",
+    "instrumentIds",
+    "proposalIds",
+    "type"
+  ],
+  "hdfViewServiceUrl": "<HDF_VIEWER_URL>",
   "testData": {
-    "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJncm91cHMiOlsiZXNzIiwibG9raSIsIm9kaW4iXSwiaWF0IjoxNTY3NDI3NzA5LCJleHAiOjE1Njc0MzEzMDl9.ENcuTBS67shghefL3wRCHxoyobwZGaFQIUvSZ0cywcE",
-    "directory": "./test/",
-    "files": ["test_file_1.txt"]
+    "jwt": "<TEST_TOKEN>",
+    "files": [
+      "test_file_1.txt"
+    ]
   },
   "graylogEnabled": false,
-  "graylogServer": "it-graylog.esss.lu.se",
+  "graylogServer": "<GREYLOG_SERVER_URL>",
   "graylogPort": 12201,
   "environment": "development",
-  "basePath": "",
-  "accessToken": ""
+  "scicatApiBasePath": "<SCICAT_API_URL>",
+  "scicatApiAccessToken": "<SCICAT_TOKEN>",
+  "uploadEnabled": false
 }

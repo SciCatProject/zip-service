@@ -1,45 +1,83 @@
+import archiver from "archiver";
 import express from "express";
+import path from "path";
 import * as fs from "fs";
 import { config } from "../common/config";
-import archiver from "archiver";
+import { validateFilenames } from "../common/file_utils";
+import { ResolvedFile, resolvePaths } from "../common/zip_utils";
 import { hasFileAccess } from "../auth";
 import { logger } from "@user-office-software/duo-logger";
-import path from "path";
 import { v4 as uuidv4 } from "uuid";
 
 export const router = express.Router();
 
+router.get("/", (req, res) => {
+  if (config.formViewsEnabled?.zip === false) {
+    return res.status(404).render("error", {
+      statusCode: 404,
+      error: "Not found",
+    });
+  }
+
+  res.render("zip_form", getFormDefaults());
+});
+
 /* POST zip */
 /**
- * Request zipping of files. Require directory:string and files:string[] in the request body
+ * Request zipping of files. Require files:string[] in the request body
  */
 router.post("/", async (req, res) => {
-  const bodyDirectory = req.body.directory;
   const bodyFileNames = req.body.files;
   const datasetId = req.body.dataset;
 
-  const absoluteFileNames = transformPaths(bodyDirectory, bodyFileNames);
-  logger.logInfo("Request has been submitted ", {
-    fileNames: absoluteFileNames,
-  });
-
-  const { hasAccess, statusCode, error, fileNames } = await hasFileAccess(
-    req,
-    absoluteFileNames,
-    datasetId
-  );
-
-  if (!hasAccess) {
-    logger.logError("Error: ", { statusCode, error });
-
-    return res.render("error", { statusCode, error });
+  if (
+    !Array.isArray(bodyFileNames) ||
+    bodyFileNames.length === 0 ||
+    bodyFileNames.some((f) => typeof f !== "string")
+  ) {
+    return res.status(400).send({
+      error: "'files' must be a non-empty array of strings",
+    });
   }
+
+  if (!validateFilenames(bodyFileNames))
+    return res.status(400).send({
+      error: "Invalid filenames, Contains '..' ",
+    });
+
+  let absoluteFilePaths: ResolvedFile[] = [];
+  if (config.directoryPathPattern) {
+    // Resolve filePaths from dataset
+    const authResponse = await hasFileAccess(req, bodyFileNames, datasetId);
+    if (!authResponse.hasAccess) {
+      logger.logError("Error accessing files", {
+        statusCode: authResponse.statusCode,
+        error: authResponse.error,
+      });
+
+      return res.status(authResponse.statusCode).send({
+        error: authResponse.error,
+      });
+    }
+    const resolvedPaths = resolvePaths(bodyFileNames, authResponse.variables);
+    if (resolvedPaths.error) {
+      return res.status(resolvedPaths.statusCode).send(resolvedPaths.error);
+    }
+    absoluteFilePaths = resolvedPaths.paths;
+  } else {
+    return res
+      .status(400)
+      .send("No data Directory Pattern configuration given");
+  }
+
+  const files = absoluteFilePaths;
+
   try {
     const zipFileName = uuidv4() + "_" + new Date().getTime() + ".zip";
 
     logger.logInfo("Zip file name : " + zipFileName, {});
-    req.session.zipData = initSession(absoluteFileNames, zipFileName, datasetId);
-    res.render("zipping", { total: fileNames.length, zipFileName });
+    req.session.zipData = initSession(files, zipFileName, datasetId);
+    res.render("zipping", { total: files.length, zipFileName });
     if (!fs.existsSync(config.zipDir)) {
       fs.mkdirSync(config.zipDir);
     }
@@ -63,23 +101,24 @@ router.post("/", async (req, res) => {
       req.session.save();
     });
     archive.on("entry", function () {
-      req.session.zipData.files[req.session.zipData.currentFileIndex].progress = 1;
+      req.session.zipData.files[req.session.zipData.currentFileIndex].progress =
+        1;
       req.session.zipData.currentFileIndex += 1;
       req.session.zipData.zipSizeOnLastCompletedEntry = getFileSizeInBytes(
-        config.zipDir + "/" + zipFileName
+        config.zipDir + "/" + zipFileName,
       );
       req.session.save();
     });
     archive.pipe(fileStream);
     try {
-      fileNames.map((fileName: string) => {
-        const directory = path.dirname(fileName);
+      files.map((file) => {
+        const directory = path.dirname(file.path);
         if (fs.existsSync(directory)) {
-          archive.file(fileName, { name: fileName });
+          archive.file(file.path, { name: file.name });
         }
       });
     } catch (error) {
-      logger.logError("Failed zipping " + absoluteFileNames, {});
+      logger.logError("Failed zipping " + files, {});
     }
     archive.finalize();
   } catch (error) {
@@ -90,9 +129,14 @@ router.post("/", async (req, res) => {
 });
 
 // Polled periodically from the zipping view. Returns current progress or resulting file name if the zipping is done
-router.get("/", (req, res) => {
-  const { currentFileIndex, ready, files, zipFileName, zipSizeOnLastCompletedEntry } =
-    req.session.zipData;
+router.get("/status", (req, res) => {
+  const {
+    currentFileIndex,
+    ready,
+    files,
+    zipFileName,
+    zipSizeOnLastCompletedEntry,
+  } = req.session.zipData;
   const zipSize = getFileSizeInBytes(config.zipDir + "/" + zipFileName);
   if (ready || currentFileIndex === files.length) {
     return res.send(req.session.zipData);
@@ -103,13 +147,6 @@ router.get("/", (req, res) => {
   return res.send(req.session.zipData);
 });
 
-const transformPaths = (directory: string, fileNames: string[]) => {
-  const absoluteFileNames = fileNames.map((fileName) =>
-    path.isAbsolute(fileName) ? fileName : path.join(directory, fileName)
-  );
-
-  return absoluteFileNames;
-};
 const getFileSizeInBytes = (filename: string) => {
   try {
     const stats = fs.statSync(filename);
@@ -121,14 +158,14 @@ const getFileSizeInBytes = (filename: string) => {
 };
 
 const initSession = (
-  absoluteFileNames: string[],
+  files: ResolvedFile[],
   zipFileName: string,
-  datasetId: string
+  datasetId: string,
 ): Global.ZipData => ({
   currentFileIndex: 0,
-  files: absoluteFileNames.map((fileName) => ({
-    fileName,
-    size: getFileSizeInBytes(fileName),
+  files: files.map((file) => ({
+    fileName: file.name,
+    size: getFileSizeInBytes(file.path),
     progress: 0,
   })),
   zipFileName,
@@ -136,3 +173,13 @@ const initSession = (
   ready: false,
   datasetId,
 });
+
+function getFormDefaults() {
+  return {
+    jwt: config.testData.jwt || "",
+    dataset: "",
+    file0: config.testData?.files[0] || "",
+    file1: config.testData?.files[1] || "",
+    file2: config.testData?.files[2] || "",
+  };
+}

@@ -1,13 +1,12 @@
 import express from "express";
-export const router = express.Router();
-
-import * as fs from "fs";
 import jwt from "jsonwebtoken";
 import path from "path";
+import * as fs from "fs";
 import StreamZip from "node-stream-zip";
 import { config } from "../common/config";
 import { logger } from "@user-office-software/duo-logger";
 
+export const router = express.Router();
 const homePath = config.dramDirectory;
 
 router.post("/", function (req, res) {
@@ -112,7 +111,7 @@ router.post("/", function (req, res) {
 
         logger.logInfo(
           `Extracted the file(s) from ${zipfileName} to ${savePath}`,
-          {}
+          {},
         );
         zip.close();
 

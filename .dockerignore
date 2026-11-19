@@ -1,7 +1,9 @@
+.git
 node_modules
 
 # testing
 testdata
+test/*
 
 # generated zips
 files/*

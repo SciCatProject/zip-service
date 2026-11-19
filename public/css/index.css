@@ -12,9 +12,25 @@ h2 {
   font-size: 1.2em;
   font-weight: normal;
 }
+h3 {
+  font-size: 1em;
+  font-weight: normal;
+  margin: 0 0 0.5em 0;
+}
 a {
   text-decoration: none;
   color: #769eda;
+}
+.button-link {
+  display: inline-block;
+  padding: 0.6em 1em;
+  background: #eee;
+  border-radius: 2px;
+  color: #333;
+}
+.button-link:hover {
+  background: #ddd;
+  color: #000;
 }
 code {
   font-style: normal;
@@ -79,6 +95,11 @@ input[type="submit"]:hover {
 .flex-panel-item {
   width: 50%;
   padding: 1em;
+}
+.form-stack form + form {
+  border-top: 1px solid #eee;
+  margin-top: 2em;
+  padding-top: 2em;
 }
 .input{
   width: 25em;

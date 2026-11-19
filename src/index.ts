@@ -1,11 +1,9 @@
 import app from "./app";
-import cors from "cors";
 import http from "http";
 import { logger } from "@user-office-software/duo-logger";
 
 const port = parseInt(process.env.PORT || "3011", 10);
 app.set("port", port);
-app.use(cors());
 
 const server = http.createServer(app);
 server.listen(port);

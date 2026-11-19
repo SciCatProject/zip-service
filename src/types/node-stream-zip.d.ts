@@ -27,11 +27,11 @@ declare module "node-stream-zip" {
     }
 
     class ZipEntry {
-        name: string
-        isDirectory: boolean
-        isFile: boolean
-        comment: string
-        size: number
+      name: string;
+      isDirectory: boolean;
+      isFile: boolean;
+      comment: string;
+      size: number;
     }
 
     class StreamZip {
@@ -45,13 +45,13 @@ declare module "node-stream-zip" {
       entry(entry:string) :ZipEntry
       entries() : ZipEntry[]
 
-        entriesCount: number
+      entriesCount: number;
     
-        stream(entry:string, callback: (err: Error | null, stream?: Stream) =>void):void
-        entryDataSync(entry:string):Buffer
-        openEntry(entry: string, callback: (err: Error | null, entry?: ZipEntry) => void, sync: boolean):void
-        extract(entry: string, outPath: string, callback: (err?: Error) => void): void
-        close(callback?: (err?: Error) => void): void
+      stream(entry:string, callback: (err: Error | null, stream?: Stream) =>void):void
+      entryDataSync(entry:string):Buffer
+      openEntry(entry: string, callback: (err: Error | null, entry?: ZipEntry) => void, sync: boolean):void
+      extract(entry: string, outPath: string, callback: (err?: Error) => void): void
+      close(callback?: (err?: Error) => void): void
     }
     export = StreamZip;
 }
