@@ -50,8 +50,13 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function isInsideDirectory(dir: string, filePath: string): boolean {
+function isInsideDirectory(
+  dir: string,
+  filePath: string,
+  included: boolean = false,
+): boolean {
   const relative = path.relative(path.resolve(dir), path.resolve(filePath));
+  if (included) return !relative.startsWith("..") && !path.isAbsolute(relative);
   return (
     relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative)
   );
@@ -108,7 +113,7 @@ export function resolvePattern(
 }
 
 export function validateResolvedPattern(pattern: string): boolean {
-  return isInsideDirectory(config.allowedDataDirectory, pattern);
+  return isInsideDirectory(config.allowedDataDirectory, pattern, true);
 }
 
 export function findFile(dirPattern: string, filename: string): string[] {
