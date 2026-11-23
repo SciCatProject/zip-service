@@ -176,10 +176,10 @@ const initSession = (
 
 function getFormDefaults() {
   return {
-    jwt: config.testData.jwt || "",
+    jwt: "",
     dataset: "",
-    file0: config.testData?.files[0] || "",
-    file1: config.testData?.files[1] || "",
-    file2: config.testData?.files[2] || "",
+    file0: "",
+    file1: "",
+    file2: "",
   };
 }

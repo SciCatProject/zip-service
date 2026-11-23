@@ -1,0 +1,7 @@
+{
+  "zipDir": "./files",
+  "jwtSecret": "bc0e46ca856a253af65cf7e92ca97064",
+  "sessionSecret": "ec4581190273ea0024bd2ca66df60c52",
+  "facility": "test",
+  "zipRetentionMillis": 3600000
+}

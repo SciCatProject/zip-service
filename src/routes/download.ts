@@ -33,11 +33,17 @@ router.get("/:file", function (req, res) {
       ready: false,
       datasetId: "",
     };
-    const file = fs.readFileSync(config.zipDir + "/" + req.params.file, "binary");
+    const file = fs.readFileSync(
+      config.zipDir + "/" + req.params.file,
+      "binary",
+    );
 
     logger.logInfo("Downloaded Zip File:", { ...oldZipData });
     res.setHeader("Content-Length", file.length);
-    res.setHeader("content-disposition", "attachment; filename=" + req.params.file);
+    res.setHeader(
+      "content-disposition",
+      "attachment; filename=" + req.params.file,
+    );
 
     res.write(file, "binary");
     res.end();
