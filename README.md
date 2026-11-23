@@ -35,7 +35,7 @@ We hope to automate the image release in the near future.
 
 ## main endpoint
 
-The main endpoint (`/`) presents links to the zip form (`/zip`) and single-file form (`/file`), which can be used to test downloading. The files presented in these forms are included in the image available on the repository, and they are available just for testing.
+The main endpoint (`/`) presents links to the zip form (`/zip`) and single-file form (`/file`), which can be used to test downloading.
 These forms are provided for testing and have to be screened and monitored for security purposes.
 
 ## zip with download
@@ -90,6 +90,31 @@ Rather than trusting a client-supplied directory, the service resolves each file
 Every resolved variable value is validated to stay within `allowedDataDirectory` and must not contain `..` (to avoid path traversal). 
 
 
+# Tests
+
+```bash
+npm test            # run the whole suite
+npm run test:cov    # with a coverage report
+```
+
+The suite uses [Jest](https://jestjs.io) and [supertest](https://github.com/ladjs/supertest), and needs no running service or SciCat instance:
+
+- `test/unit` covers the path resolution, access checks (`auth.ts`) and helpers.
+- `test/integration` drives the real Express app (`src/app.ts`) over HTTP against temporary data directories: file links, ranges, zip with download, zip in place, upload validation, CORS.
+
+`config/config.json` is never read by the tests: `test/helpers/setup.ts` replaces the config module with an in-memory one, and the SciCat API is mocked per test file.
+
+# Linting and formatting
+
+```bash
+npm run lint:check    # ESLint, no changes (what CI runs)
+npm run lint          # ESLint, fixing what it can
+npm run format:check  # Prettier, no changes (what CI runs)
+npm run format        # Prettier, rewrite files
+```
+
+Formatting is owned by [Prettier](https://prettier.io) (`.prettierrc.json`); ESLint only checks correctness (`eslint-config-prettier` disables its style rules). CI runs lint, format, build and test as four independent jobs.
+
 # config/config.json
 
 Required in the root directory (loaded from `config/config.json`).
@@ -118,9 +143,6 @@ Required in the root directory (loaded from `config/config.json`).
 | graylogServer | string | Graylog server hostname. |
 | graylogPort | number | Graylog GELF port. |
 | environment | string | Deployment environment name, passed to the logger. |
-| testData | Object | Optional. Default input values at the index/zip/file forms. |
-| testData.jwt | string | Optional. Default jwt. |
-| testData.files | string[] | Optional. Default files. |
 | uploadEnabled | boolean | Optional. Enables the `POST /upload` route (zip-file upload/extraction) and its `express-fileupload` middleware. Disabled by default; the route doesn't exist (404) unless this is explicitly set to `true`. |
 | dramDirectory | string | Upload directory used by the `/upload` route. Required when `uploadEnabled` is `true`. |
 
@@ -141,10 +163,6 @@ Example data
   "routeBasePath": "",
   "publicOrigin": "https://zip-service.example.org",
   "scicatApiBasePath": "https://scicat.example.org",
-  "scicatApiAccessToken": "<scicatServiceAccountToken>",
-  "testData": {
-    "jwt": "<jwtToken>",
-    "files": ["<testFileName1>", "<testFileName2>", "<testFileName3>"]
-  }
+  "scicatApiAccessToken": "<scicatServiceAccountToken>"
 }
 ```

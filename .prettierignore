@@ -1,0 +1,17 @@
+# generated / vendored
+dist/
+coverage/
+node_modules/
+public/
+files/
+package-lock.json
+
+# not formatted by this project
+.vscode/
+CI/
+config/
+docs/
+scripts/
+*.md
+*.ejs
+tsconfig.json

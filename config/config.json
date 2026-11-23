@@ -21,12 +21,6 @@
     "type"
   ],
   "hdfViewServiceUrl": "<HDF_VIEWER_URL>",
-  "testData": {
-    "jwt": "<TEST_TOKEN>",
-    "files": [
-      "test_file_1.txt"
-    ]
-  },
   "graylogEnabled": false,
   "graylogServer": "<GREYLOG_SERVER_URL>",
   "graylogPort": 12201,

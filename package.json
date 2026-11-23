@@ -9,7 +9,13 @@
     "prestart": "npm run build",
     "start": "node ./dist/index.js",
     "dev": "ts-node-dev --inspect --respawn --exit-child --watch src --transpile-only src/index.ts",
-    "lint": "eslint --fix ."
+    "lint": "eslint --fix .",
+    "lint:check": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage"
   },
   "dependencies": {
     "@scicatproject/scicat-sdk-ts-fetch": "^5.3.3",
@@ -36,11 +42,18 @@
     "@types/express": "^4.17.21",
     "@types/express-fileupload": "^1.2.2",
     "@types/express-session": "^1.17.4",
+    "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^20.11.25",
+    "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.2",
+    "jest": "^29.7.0",
+    "prettier": "^3.10.1",
+    "supertest": "^7.3.2",
+    "ts-jest": "^29.4.15",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.2"
   }

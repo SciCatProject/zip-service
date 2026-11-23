@@ -472,8 +472,8 @@ function parseRange(rangeHeader: string | undefined, fileSize: number) {
 
 function getFormDefaults() {
   return {
-    jwt: config.testData.jwt || "",
+    jwt: "",
     dataset: "",
-    file0: config.testData?.files[0] || "",
+    file0: "",
   };
 }

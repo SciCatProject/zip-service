@@ -21,27 +21,27 @@ process.on("uncaughtException", (error) => {
 function onError(error: Record<string, unknown>) {
   if (error.syscall !== "listen") {
     logger.logError("Error received ", error);
-    
+
     throw error;
   }
   const bind = "Port " + port;
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
-  case "EACCES":
-    logger.logError(bind + " requires elevated privileges", error);
+    case "EACCES":
+      logger.logError(bind + " requires elevated privileges", error);
 
-    process.exit(1);
-    break;
-  case "EADDRINUSE":
-    logger.logError(bind + " is already in use", error);
+      process.exit(1);
+      break;
+    case "EADDRINUSE":
+      logger.logError(bind + " is already in use", error);
 
-    process.exit(1);
-    break;
-  default:
-    logger.logError(bind + " is already in use", error);
+      process.exit(1);
+      break;
+    default:
+      logger.logError(bind + " is already in use", error);
 
-    throw error;
+      throw error;
   }
 }
 function onListening() {
